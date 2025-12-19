@@ -22,7 +22,7 @@ const DoctorDashboard = () => {
 
             <main className="dashboard-content">
                 <div className="welcome-card">
-                    <div className="welcome-icon doctor-icon">👨‍⚕️</div>
+                    <div className="welcome-icon doctor-icon">{user?.gender === 'female' ? '👩‍⚕️' : '👨‍⚕️'}</div>
                     <h2>Hoş Geldiniz, Dr. {user?.firstName || 'Doktor'}!</h2>
                     <p>Doktor paneline başarıyla giriş yaptınız.</p>
                 </div>

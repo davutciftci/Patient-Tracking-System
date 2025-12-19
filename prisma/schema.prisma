@@ -20,6 +20,7 @@ model User {
   email       String     @unique
   password    String
   role        Role
+  gender      Gender
   tc_no       String     @unique
   joined_at   DateTime   @default(now())
   address     String
@@ -28,6 +29,11 @@ model User {
   Patient     Patient?
   Doctor      Doctor?
   Secretary   Secretary?
+}
+
+enum Gender {
+  male
+  female
 }
 
 enum Role {

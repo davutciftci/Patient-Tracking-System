@@ -11,6 +11,7 @@ const Register = () => {
         password: '',
         confirmPassword: '',
         role: 'patient' as 'patient' | 'doctor' | 'secretary',
+        gender: 'male' as 'male' | 'female',
         tc_no: '',
         address: '',
         phoneNumber: '',
@@ -125,6 +126,20 @@ const Register = () => {
                             <option value="patient">Hasta</option>
                             <option value="doctor">Doktor</option>
                             <option value="secretary">Sekreter</option>
+                        </select>
+                    </div>
+
+                    <div className="form-group">
+                        <label htmlFor="gender">Cinsiyet</label>
+                        <select
+                            id="gender"
+                            name="gender"
+                            value={formData.gender}
+                            onChange={handleChange}
+                            required
+                        >
+                            <option value="male">Erkek</option>
+                            <option value="female">Kadın</option>
                         </select>
                     </div>
 

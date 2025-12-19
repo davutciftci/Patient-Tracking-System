@@ -19,7 +19,7 @@ const Login = () => {
 
         try {
             const response = await apiLogin(email, password);
-            login(response.token, response.role, response.firstName);
+            login(response.token, response.role, response.firstName, response.gender);
 
             // Role'e göre yönlendirme
             const dashboardMap: Record<string, string> = {

@@ -4,11 +4,12 @@ interface User {
     token: string;
     role: 'patient' | 'doctor' | 'secretary';
     firstName: string;
+    gender: 'male' | 'female';
 }
 
 interface AuthContextType {
     user: User | null;
-    login: (token: string, role: User['role'], firstName: string) => void;
+    login: (token: string, role: User['role'], firstName: string, gender: User['gender']) => void;
     logout: () => void;
     isAuthenticated: boolean;
 }
@@ -22,22 +23,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const token = localStorage.getItem('token');
         const role = localStorage.getItem('role') as User['role'];
         const firstName = localStorage.getItem('firstName') || '';
+        const gender = localStorage.getItem('gender') as User['gender'] || 'male';
         if (token && role) {
-            setUser({ token, role, firstName });
+            setUser({ token, role, firstName, gender });
         }
     }, []);
 
-    const login = (token: string, role: User['role'], firstName: string) => {
+    const login = (token: string, role: User['role'], firstName: string, gender: User['gender']) => {
         localStorage.setItem('token', token);
         localStorage.setItem('role', role);
         localStorage.setItem('firstName', firstName);
-        setUser({ token, role, firstName });
+        localStorage.setItem('gender', gender);
+        setUser({ token, role, firstName, gender });
     };
 
     const logout = () => {
         localStorage.removeItem('token');
         localStorage.removeItem('role');
         localStorage.removeItem('firstName');
+        localStorage.removeItem('gender');
         setUser(null);
     };
 

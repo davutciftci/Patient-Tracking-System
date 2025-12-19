@@ -22,7 +22,7 @@ const SecretaryDashboard = () => {
 
             <main className="dashboard-content">
                 <div className="welcome-card">
-                    <div className="welcome-icon secretary-icon">💼</div>
+                    <div className="welcome-icon secretary-icon">{user?.gender === 'female' ? '👩‍💼' : '👨‍💼'}</div>
                     <h2>Hoş Geldiniz, {user?.firstName || 'Sekreter'}!</h2>
                     <p>Sekreter paneline başarıyla giriş yaptınız.</p>
                 </div>
