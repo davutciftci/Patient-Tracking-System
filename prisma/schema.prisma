@@ -1,0 +1,102 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User {
+  id          Int        @id @default(autoincrement())
+  firstName   String
+  lastName    String
+  email       String     @unique
+  password    String
+  role        Role
+  tc_no       String     @unique
+  joined_at   DateTime   @default(now())
+  address     String
+  phoneNumber String
+  birthDate   DateTime
+  Patient     Patient?
+  Doctor      Doctor?
+  Secretary   Secretary?
+}
+
+enum Role {
+  doctor
+  patient
+  secretary
+}
+
+enum AppointmenStatus {
+  pending
+  completed
+  cancelled
+}
+
+model Patient {
+  id           Int           @id @default(autoincrement())
+  userId       Int           @unique
+  user         User          @relation(fields: [userId], references: [id])
+  appointments Appointment[]
+  doctor       Doctor        @relation(fields: [doctorId], references: [id])
+  doctorId     Int
+}
+
+model Doctor {
+  id           Int           @id @default(autoincrement())
+  speciality   String
+  userId       Int           @unique
+  user         User          @relation(fields: [userId], references: [id])
+  appointments Appointment[]
+  clinic       Clinic        @relation(fields: [clinicId], references: [id], onDelete: SetDefault)
+  clinicId     Int
+  examinations Examination[]
+  patients     Patient[]
+}
+
+model Secretary {
+  id           Int           @id @default(autoincrement())
+  userId       Int           @unique
+  user         User          @relation(fields: [userId], references: [id])
+  appointments Appointment[]
+  clinics      Clinic[]      @relation("SecretaryClinic")
+}
+
+model Appointment {
+  id           Int              @id @default(autoincrement())
+  patientId    Int
+  doctorId     Int
+  status       AppointmenStatus
+  patient      Patient          @relation(fields: [patientId], references: [id])
+  doctor       Doctor           @relation(fields: [doctorId], references: [id])
+  secretary    Secretary?       @relation(fields: [secretaryId], references: [id])
+  secretaryId  Int?
+  examinations Examination[]
+}
+
+model Examination {
+  id            Int           @id @default(autoincrement())
+  appointmentId Int           @unique
+  diagnosis     String
+  doctorId      Int
+  doctor        Doctor        @relation(fields: [doctorId], references: [id])
+  treatment     String
+  notes         String
+  appointment   Appointment[]
+}
+
+model Clinic {
+  id        Int         @id @default(autoincrement())
+  name      String
+  secretary Secretary[] @relation("SecretaryClinic")
+  doctors   Doctor[]
+}
