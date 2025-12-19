@@ -7,7 +7,6 @@ const router = Router();
 router.get("/", (req, res) => {
     res.json({ message: "API çalışıyor!" });
 });
-
 router.post("/register", registerController)
 
 // Auth routes
