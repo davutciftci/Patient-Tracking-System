@@ -4,6 +4,9 @@ import bcrypt from "bcrypt";
 import { Request, Response } from "express";
 import { generateToken } from "../model/auth";
 import { comparePassword, hashPassword } from "../utils/password";
+import { sendError, sendSuccess } from "../utils/response";
+import { HttpStatus } from "../utils/httpStatus";
+import { checkTcNo } from "../middlewares/user";
 
 
 
@@ -17,7 +20,7 @@ export const registerController = async (req: Request, res: Response) => {
         });
 
         if (existingUser) {
-            return res.status(400).json({ message: "Bu email kullanılıyor" });
+            return sendError(res, "Bu email kullanılıyor", HttpStatus.BAD_REQUEST);
         }
 
         // TC No kontrolü
@@ -26,12 +29,7 @@ export const registerController = async (req: Request, res: Response) => {
         });
 
         if (existingTc) {
-            return res.status(400).json({ message: "Bu TC No zaten kayıtlı" });
-        }
-
-        // TC No format kontrolü
-        if (!tc_no || tc_no.length !== 11 || !/^[0-9]+$/.test(tc_no)) {
-            return res.status(400).json({ message: "TC No 11 haneli ve sadece rakamlardan oluşmalıdır" });
+            return sendError(res, "Bu TC No zaten kayıtlı", HttpStatus.BAD_REQUEST);
         }
 
         const hashedPassword = await hashPassword(password);
@@ -50,11 +48,10 @@ export const registerController = async (req: Request, res: Response) => {
                 birthDate: new Date(birthDate)
             }
         });
-
-        return res.status(201).json({ message: "Kullanıcı oluşturuldu", userId: newUser.id, role: newUser.role });
+        sendSuccess(res, { message: "Kullanıcı oluşturuldu", userId: newUser.id, role: newUser.role });
     } catch (error: any) {
         console.error("Register Error:", error);
-        return res.status(500).json({ message: "Bir hata oluştu", error: error?.message || error });
+        return sendError(res, "Bir hata oluştu", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 };
 
@@ -66,20 +63,20 @@ export const loginController = async (req: Request, res: Response) => {
         const user = await prisma.user.findUnique({ where: { email: email } })
 
         if (!user) {
-            return res.status(400).json({ message: "Email veya şifre hatalı" })
+            return sendError(res, "Email veya şifre hatalı", HttpStatus.BAD_REQUEST)
         }
 
         const isPasswordValid = await comparePassword(password, user.password)
 
         if (!isPasswordValid) {
-            return res.status(400).json({ message: "Email veya şifre hatalı" })
+            return sendError(res, "Email veya şifre hatalı", HttpStatus.BAD_REQUEST)
         }
 
         const token = generateToken({ userId: user.id.toString() })
 
-        return res.status(200).json({ message: "Giriş başarılı", token, role: user.role, firstName: user.firstName, gender: user.gender })
+        return sendSuccess(res, { message: "Giriş başarılı", token, role: user.role, firstName: user.firstName, gender: user.gender })
 
     } catch {
-        return res.status(500).json({ message: "Bir hata oluştu" })
+        return sendError(res, "Bir hata oluştu", HttpStatus.INTERNAL_SERVER_ERROR)
     }
 }

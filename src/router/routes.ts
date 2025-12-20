@@ -1,5 +1,7 @@
 import { Router } from "express";
-import { loginController, registerController } from "../controllers/user";
+import { checkTcNo } from "../middlewares/user";
+import { authMiddleware } from "../controllers/auth";
+import { loginController, registerController, updateMeController, getMeController } from "../controllers/index";
 //import { createAppointment, createClinic, createExamination, deleteAppointment, deleteClinic, deleteExamination, getAppointment, getAppointmentById, getClinic, getClinicById, getExamination, getExaminationById, updateAppointment, updateClinic, updateExamination } from "../controllers/appointment";
 
 const router = Router();
@@ -8,10 +10,14 @@ const router = Router();
 router.get("/", (req, res) => {
     res.json({ message: "API çalışıyor!" });
 });
-router.post("/register", registerController)
+
+router.post("/register", checkTcNo, registerController)
 
 // Auth routes
 router.post("/login", loginController);
+
+router.get("/users/me", authMiddleware, getMeController);
+router.put("/users/me", authMiddleware, updateMeController)
 
 // // Appointment routes
 // router.post("/appointments", createAppointment);
