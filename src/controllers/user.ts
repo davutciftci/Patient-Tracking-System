@@ -3,7 +3,7 @@ import { Gender } from "../../generated/prisma/client";
 import bcrypt from "bcrypt";
 import { Request, Response } from "express";
 import { generateToken } from "../model/auth";
-import { comparePassword, hashPassword } from "../utils/util";
+import { comparePassword, hashPassword } from "../utils/password";
 
 
 

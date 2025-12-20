@@ -1,7 +1,7 @@
 import prisma from "../config/prisma";
 import { Gender } from "../../generated/prisma/client";
 import { UserCreateDto } from "../types/type";
-import { hashPassword } from "../utils/util";
+import { hashPassword } from "../utils/password";
 
 export class UserModel {
     static async create(body: UserCreateDto) {
