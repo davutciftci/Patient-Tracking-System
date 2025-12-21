@@ -6,8 +6,8 @@ import { HttpStatus } from "../utils/httpStatus";
 
 export const getCliniccontroller = async (req: Request, res: Response) => {
     try {
-        const clinic = await getAllClinics();
-        sendSuccess(res, { clinic })
+        const clinics = await getAllClinics();
+        sendSuccess(res, { clinics })
     } catch (error) {
         sendError(res, "Bir hata oluştu", HttpStatus.INTERNAL_SERVER_ERROR)
     }
@@ -33,7 +33,7 @@ export const createNewClinicController = async (req: Request, res: Response) => 
 
 export const updateExistingClinicController = async (req: Request, res: Response) => {
     try {
-        const clinic = await updateExistingClinic(parseInt(req.params.id), req.body.name, req.user?.role!)
+        const clinic = await updateExistingClinic(parseInt(req.params.id), req.body, req.user?.role!)
         sendSuccess(res, { clinic })
     } catch (error) {
         sendError(res, "Bir hata oluştu", HttpStatus.INTERNAL_SERVER_ERROR)

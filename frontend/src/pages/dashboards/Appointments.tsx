@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { getAllAppointments, createAppointment, updateAppointment, getAllPatients, getAllDoctors } from '../../api/client';
+import { getAllAppointments, createAppointment, updateAppointment, getAllPatients, getAllDoctors, getAllClinics } from '../../api/client';
 import './Dashboard.css';
 
 interface Appointment {
@@ -17,23 +17,31 @@ interface Appointment {
 
 interface UserSelect {
     id: number;
+    clinicId?: number;
     user: {
         firstName: string;
         lastName: string;
     };
 }
 
+interface Clinic {
+    id: number;
+    name: string;
+}
+
 const Appointments = () => {
-    const { logout } = useAuth();
+    const { logout, user } = useAuth();
     const navigate = useNavigate();
     const [appointments, setAppointments] = useState<Appointment[]>([]);
     const [patients, setPatients] = useState<UserSelect[]>([]);
     const [doctors, setDoctors] = useState<UserSelect[]>([]);
+    const [clinics, setClinics] = useState<Clinic[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [showForm, setShowForm] = useState(false);
     const [formData, setFormData] = useState({
         patientId: '',
+        clinicId: '',
         doctorId: '',
         date: '',
         time: '',
@@ -47,14 +55,16 @@ const Appointments = () => {
     const fetchData = async () => {
         try {
             setLoading(true);
-            const [appointmentsRes, patientsRes, doctorsRes] = await Promise.all([
+            const [appointmentsRes, patientsRes, doctorsRes, clinicsRes] = await Promise.all([
                 getAllAppointments(),
                 getAllPatients(),
-                getAllDoctors()
+                getAllDoctors(),
+                getAllClinics()
             ]);
             setAppointments(appointmentsRes.appointments || []);
             setPatients(patientsRes.patients || []);
             setDoctors(doctorsRes.doctors || []);
+            setClinics(clinicsRes.clinics || []);
         } catch (err: any) {
             setError(err.response?.data?.message || 'Veriler yüklenemedi');
         } finally {
@@ -82,7 +92,7 @@ const Appointments = () => {
                 notes: formData.notes || undefined
             });
             setShowForm(false);
-            setFormData({ patientId: '', doctorId: '', date: '', time: '', notes: '' });
+            setFormData({ patientId: '', clinicId: '', doctorId: '', date: '', time: '', notes: '' });
             fetchAppointments();
         } catch (err: any) {
             setError(err.response?.data?.message || 'Randevu oluşturulamadı');
@@ -124,6 +134,10 @@ const Appointments = () => {
         });
     };
 
+    const filteredDoctors = formData.clinicId
+        ? doctors.filter(d => d.clinicId === parseInt(formData.clinicId))
+        : [];
+
     return (
         <div className="dashboard-container">
             <header className="dashboard-header">
@@ -140,12 +154,14 @@ const Appointments = () => {
 
             <main className="dashboard-content">
                 <div className="actions-bar">
-                    <button
-                        onClick={() => setShowForm(!showForm)}
-                        className="action-btn primary"
-                    >
-                        {showForm ? 'İptal' : '+ Yeni Randevu'}
-                    </button>
+                    {user?.role !== 'doctor' && (
+                        <button
+                            onClick={() => setShowForm(!showForm)}
+                            className="action-btn primary"
+                        >
+                            {showForm ? 'İptal' : '+ Yeni Randevu'}
+                        </button>
+                    )}
                 </div>
 
                 {error && <div className="error-message">{error}</div>}
@@ -171,6 +187,26 @@ const Appointments = () => {
                                         ))}
                                     </select>
                                 </div>
+
+                                <div className="form-group">
+                                    <label>Klinik Seçin</label>
+                                    <select
+                                        value={formData.clinicId}
+                                        onChange={(e) => setFormData({ ...formData, clinicId: e.target.value, doctorId: '' })}
+                                        required
+                                        className="form-select"
+                                    >
+                                        <option value="">Klinik Seçiniz</option>
+                                        {clinics.map((clinic) => (
+                                            <option key={clinic.id} value={clinic.id}>
+                                                {clinic.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="form-row">
                                 <div className="form-group">
                                     <label>Doktor Seçin</label>
                                     <select
@@ -178,17 +214,18 @@ const Appointments = () => {
                                         onChange={(e) => setFormData({ ...formData, doctorId: e.target.value })}
                                         required
                                         className="form-select"
+                                        disabled={!formData.clinicId}
                                     >
-                                        <option value="">Doktor Seçiniz</option>
-                                        {doctors.map((doctor) => (
+                                        <option value="">
+                                            {formData.clinicId ? 'Doktor Seçiniz' : 'Önce Klinik Seçiniz'}
+                                        </option>
+                                        {filteredDoctors.map((doctor) => (
                                             <option key={doctor.id} value={doctor.id}>
                                                 Dr. {doctor.user.firstName} {doctor.user.lastName}
                                             </option>
                                         ))}
                                     </select>
                                 </div>
-                            </div>
-                            <div className="form-row">
                                 <div className="form-group">
                                     <label>Tarih</label>
                                     <input
@@ -198,6 +235,9 @@ const Appointments = () => {
                                         required
                                     />
                                 </div>
+                            </div>
+
+                            <div className="form-row">
                                 <div className="form-group">
                                     <label>Saat</label>
                                     <input
@@ -208,6 +248,7 @@ const Appointments = () => {
                                     />
                                 </div>
                             </div>
+
                             <div className="form-group">
                                 <label>Notlar</label>
                                 <textarea
@@ -290,6 +331,15 @@ const Appointments = () => {
                                                         ✔
                                                     </button>
                                                 )}
+                                                {apt.status === 'confirmed' && user?.role === 'doctor' && (
+                                                    <button
+                                                        onClick={() => navigate('/examinations', { state: { appointmentId: apt.id } })}
+                                                        className="btn-exam"
+                                                        title="Muayene Başlat"
+                                                    >
+                                                        🩺
+                                                    </button>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>
@@ -297,9 +347,10 @@ const Appointments = () => {
                             </tbody>
                         </table>
                     </div>
-                )}
-            </main>
-        </div>
+                )
+                }
+            </main >
+        </div >
     );
 };
 

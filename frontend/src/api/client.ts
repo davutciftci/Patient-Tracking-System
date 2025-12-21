@@ -9,7 +9,6 @@ const api = axios.create({
     },
 });
 
-// Auth endpoints
 export const login = async (email: string, password: string) => {
     const response = await api.post('/login', { email, password });
     return response.data;
@@ -30,14 +29,11 @@ export const register = async (userData: {
     return response.data;
 };
 
-// Helper to get auth header
 const getAuthHeader = () => {
     const token = localStorage.getItem('token');
     return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
-// User Profile endpoints
-// User endpoints
 export const getAllPatients = async () => {
     const response = await api.get('/patients', { headers: getAuthHeader() });
     return response.data;
@@ -45,6 +41,11 @@ export const getAllPatients = async () => {
 
 export const getAllDoctors = async () => {
     const response = await api.get('/doctors', { headers: getAuthHeader() });
+    return response.data;
+};
+
+export const updateDoctor = async (id: number, data: { clinicId?: number }) => {
+    const response = await api.put(`/doctors/${id}`, data, { headers: getAuthHeader() });
     return response.data;
 };
 
@@ -65,7 +66,6 @@ export const updateMe = async (data: {
     return response.data;
 };
 
-// Examination endpoints
 export const getAllExaminations = async () => {
     const response = await api.get('/examinations', { headers: getAuthHeader() });
     return response.data;
@@ -111,7 +111,6 @@ export const deleteExamination = async (id: number) => {
     return response.data;
 };
 
-// Appointment endpoints
 export const getAllAppointments = async () => {
     const response = await api.get('/appointments', { headers: getAuthHeader() });
     return response.data;
@@ -142,12 +141,17 @@ export const createAppointment = async (data: {
     return response.data;
 };
 
+
+export const getPatientsByDoctor = async (doctorId: number) => {
+    const response = await api.get(`/patients/doctor/${doctorId}`, { headers: getAuthHeader() });
+    return response.data;
+};
+
 export const updateAppointment = async (id: number, data: { status?: string }) => {
     const response = await api.put(`/appointments/${id}`, data, { headers: getAuthHeader() });
     return response.data;
 };
 
-// Clinic endpoints
 export const getAllClinics = async () => {
     const response = await api.get('/clinics');
     return response.data;
@@ -174,5 +178,10 @@ export const deleteClinic = async (id: number) => {
 };
 
 
+
+export const getAiSuggestions = async (symptoms: string) => {
+    const response = await api.post('/ai/diagnosis', { symptoms }, { headers: getAuthHeader() });
+    return response.data;
+};
 
 export default api;

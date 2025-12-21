@@ -21,9 +21,9 @@ export const findUserWithRoleData = async (userId: number, includeOptions: { Doc
             id: userId
         },
         include: {
-            Doctor: includeOptions.Doctor,
-            Patient: includeOptions.Patient,
-            Secretary: includeOptions.Secretary
+            Doctor: includeOptions.Doctor ? { include: { clinic: true } } : false,
+            Patient: includeOptions.Patient ? { include: { doctor: { include: { user: true, clinic: true } } } } : false,
+            Secretary: includeOptions.Secretary ? { include: { clinics: true } } : false
         }
     })
 

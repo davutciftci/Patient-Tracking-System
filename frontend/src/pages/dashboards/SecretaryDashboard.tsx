@@ -34,11 +34,13 @@ const SecretaryDashboard = () => {
                         <p>Randevuları oluşturun ve yönetin</p>
                     </div>
 
-                    <div className="dashboard-card">
+                    <div className="dashboard-card" onClick={() => navigate('/patients')}>
                         <div className="card-icon">👥</div>
                         <h3>Hasta Kayıt</h3>
                         <p>Yeni hasta kaydı oluşturun</p>
                     </div>
+
+
 
                     <div className="dashboard-card" onClick={() => navigate('/clinics')}>
                         <div className="card-icon">🏥</div>

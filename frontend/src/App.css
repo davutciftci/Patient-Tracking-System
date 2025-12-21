@@ -1,4 +1,4 @@
-/* Global App Styles - Light Theme */
+
 * {
   margin: 0;
   padding: 0;
@@ -18,14 +18,14 @@ body {
   min-height: 100vh;
 }
 
-/* Reset for forms */
+
 input,
 select,
 button {
   font-family: inherit;
 }
 
-/* Link styles */
+
 a {
   color: #2563eb;
   text-decoration: none;

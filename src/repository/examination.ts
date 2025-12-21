@@ -22,9 +22,7 @@ export const findExaminationsByPatientId = async (patientId: number) => {
     const examinations = await prisma.examination.findMany({
         where: {
             appointment: {
-                some: {
-                    patientId: patientId
-                }
+                patientId: patientId
             }
         },
         include: {

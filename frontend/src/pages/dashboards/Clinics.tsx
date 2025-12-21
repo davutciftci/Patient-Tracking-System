@@ -1,42 +1,69 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { getAllClinics, createClinic, updateClinic, deleteClinic } from '../../api/client';
+import { getAllClinics, createClinic, updateClinic, deleteClinic, getAllDoctors, updateDoctor } from '../../api/client';
 import './Dashboard.css';
 
 interface Clinic {
     id: number;
     name: string;
     address: string;
+    doctors?: any[];
+}
+
+interface Doctor {
+    id: number;
+    clinicId?: number;
+    user: {
+        firstName: string;
+        lastName: string;
+    };
+    speciality: string;
 }
 
 const Clinics = () => {
     const { logout } = useAuth();
     const navigate = useNavigate();
     const [clinics, setClinics] = useState<Clinic[]>([]);
+    const [doctors, setDoctors] = useState<Doctor[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [showForm, setShowForm] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
+    const [managingClinic, setManagingClinic] = useState<Clinic | null>(null);
+    const [selectedDoctorId, setSelectedDoctorId] = useState<string>('');
     const [formData, setFormData] = useState({
         name: '',
         address: ''
     });
 
     useEffect(() => {
-        fetchClinics();
+        fetchData();
     }, []);
 
-    const fetchClinics = async () => {
+    const fetchData = async () => {
         try {
             setLoading(true);
-            const response = await getAllClinics();
-            setClinics(response.clinics || []);
+            const [clinicsRes, doctorsRes] = await Promise.all([
+                getAllClinics(),
+                getAllDoctors()
+            ]);
+            setClinics(clinicsRes.clinics || []);
+            setDoctors(doctorsRes.doctors || []);
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Klinikler yüklenemedi');
+            setError(err.response?.data?.message || 'Veriler yüklenemedi');
         } finally {
             setLoading(false);
         }
+    };
+
+    const fetchOnlyData = async () => {
+        const [clinicsRes, doctorsRes] = await Promise.all([
+            getAllClinics(),
+            getAllDoctors()
+        ]);
+        setClinics(clinicsRes.clinics || []);
+        setDoctors(doctorsRes.doctors || []);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -50,9 +77,29 @@ const Clinics = () => {
             setShowForm(false);
             setEditingId(null);
             setFormData({ name: '', address: '' });
-            fetchClinics();
+            fetchOnlyData();
         } catch (err: any) {
             setError(err.response?.data?.message || 'İşlem başarısız');
+        }
+    };
+
+    const handleAssignDoctor = async () => {
+        if (!selectedDoctorId || !managingClinic) return;
+        try {
+            await updateDoctor(parseInt(selectedDoctorId), { clinicId: managingClinic.id });
+            setSelectedDoctorId('');
+            fetchOnlyData();
+        } catch (err: any) {
+            setError('Doktor atanamadı');
+        }
+    };
+
+    const handleRemoveDoctor = async (doctorId: number) => {
+        try {
+            await updateDoctor(doctorId, { clinicId: null } as any);
+            fetchOnlyData();
+        } catch (err: any) {
+            setError('Doktor çıkarılamadı');
         }
     };
 
@@ -66,7 +113,7 @@ const Clinics = () => {
         if (window.confirm('Bu kliniği silmek istediğinizden emin misiniz?')) {
             try {
                 await deleteClinic(id);
-                fetchClinics();
+                fetchOnlyData();
             } catch (err: any) {
                 setError(err.response?.data?.message || 'Klinik silinemedi');
             }
@@ -83,6 +130,7 @@ const Clinics = () => {
         setEditingId(null);
         setFormData({ name: '', address: '' });
     };
+
 
     return (
         <div className="dashboard-container">
@@ -113,6 +161,7 @@ const Clinics = () => {
 
                 {error && <div className="error-message">{error}</div>}
 
+                {}
                 {showForm && (
                     <div className="form-card">
                         <h3>{editingId ? 'Klinik Düzenle' : 'Yeni Klinik Ekle'}</h3>
@@ -164,7 +213,16 @@ const Clinics = () => {
                                 <div className="clinic-icon">🏥</div>
                                 <h3>{clinic.name}</h3>
                                 <p className="clinic-address">📍 {clinic.address}</p>
+                                <div className="clinic-stats">
+                                    <span>👨‍⚕️ {doctors.filter(d => d.clinicId === clinic.id).length} Doktor</span>
+                                </div>
                                 <div className="clinic-actions">
+                                    <button
+                                        onClick={() => navigate(`/clinics/${clinic.id}`)}
+                                        className="btn-manage"
+                                    >
+                                        👨‍⚕️ Yönet / Detay
+                                    </button>
                                     <button
                                         onClick={() => handleEdit(clinic)}
                                         className="btn-edit"

@@ -14,66 +14,75 @@ export const registerController = async (req: Request, res: Response) => {
     try {
         const { email, firstName, lastName, password, role, gender, tc_no, address, phoneNumber, birthDate } = req.body;
 
-        // Email kontrolü
-        const existingUser = await prisma.user.findUnique({
-            where: { email }
-        });
-
-        if (existingUser) {
-            return sendError(res, "Bu email kullanılıyor", HttpStatus.BAD_REQUEST);
-        }
-
-        // TC No kontrolü
-        const existingTc = await prisma.user.findUnique({
-            where: { tc_no }
-        });
-
-        if (existingTc) {
-            return sendError(res, "Bu TC No zaten kayıtlı", HttpStatus.BAD_REQUEST);
-        }
-
         const hashedPassword = await hashPassword(password);
 
-        const newUser = await prisma.user.create({
-            data: {
-                email,
-                firstName,
-                lastName,
-                password: hashedPassword,
-                role,
-                gender: gender as Gender,
-                tc_no,
-                address,
-                phoneNumber,
-                birthDate: new Date(birthDate)
+        const parsedDate = new Date(birthDate);
+        if (isNaN(parsedDate.getTime())) {
+            return sendError(res, "Geçersiz doğum tarihi formatı", HttpStatus.BAD_REQUEST);
+        }
+
+        const year = parsedDate.getFullYear();
+        if (year < 1900 || year > new Date().getFullYear()) {
+            return sendError(res, "Lütfen geçerli bir doğum tarihi giriniz", HttpStatus.BAD_REQUEST);
+        }
+
+        const result = await prisma.$transaction(async (tx) => {
+            const existingUser = await tx.user.findUnique({ where: { email } });
+            if (existingUser) {
+                throw new Error("Bu email kullanılıyor");
             }
+
+            const existingTc = await tx.user.findUnique({ where: { tc_no } });
+            if (existingTc) {
+                throw new Error("Bu TC No zaten kayıtlı");
+            }
+
+            const newUser = await tx.user.create({
+                data: {
+                    email,
+                    firstName,
+                    lastName,
+                    password: hashedPassword,
+                    role,
+                    gender: gender as Gender,
+                    tc_no,
+                    address,
+                    phoneNumber,
+                    birthDate: parsedDate
+                }
+            });
+
+            if (role === 'doctor') {
+                await tx.doctor.create({
+                    data: {
+                        userId: newUser.id,
+                        speciality: 'Genel Pratisyen'
+                    }
+                });
+            } else if (role === 'patient') {
+                await tx.patient.create({
+                    data: {
+                        userId: newUser.id
+                    }
+                });
+            } else if (role === 'secretary') {
+                await tx.secretary.create({
+                    data: {
+                        userId: newUser.id
+                    }
+                });
+            }
+
+            return newUser;
         });
 
-        // Rol tabanlı kayıt oluşturma
-        if (role === 'doctor') {
-            await prisma.doctor.create({
-                data: {
-                    userId: newUser.id,
-                    speciality: 'Genel Pratisyen' // Default, daha sonra güncellenebilir
-                }
-            });
-        } else if (role === 'patient') {
-            await prisma.patient.create({
-                data: {
-                    userId: newUser.id
-                }
-            });
-        } else if (role === 'secretary') {
-            await prisma.secretary.create({
-                data: {
-                    userId: newUser.id
-                }
-            });
-        }
-        sendSuccess(res, { message: "Kullanıcı oluşturuldu", userId: newUser.id, role: newUser.role });
+        sendSuccess(res, { message: "Kullanıcı oluşturuldu", userId: result.id, role: result.role });
     } catch (error: any) {
         console.error("Register Error:", error);
-        return sendError(res, "Bir hata oluştu", HttpStatus.INTERNAL_SERVER_ERROR);
+        const status = error.message === "Bu email kullanılıyor" || error.message === "Bu TC No zaten kayıtlı"
+            ? HttpStatus.BAD_REQUEST
+            : HttpStatus.INTERNAL_SERVER_ERROR;
+        return sendError(res, error.message || "Bir hata oluştu", status);
     }
 };
 

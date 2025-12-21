@@ -10,11 +10,15 @@ import Examinations from './pages/dashboards/Examinations';
 import Profile from './pages/dashboards/Profile';
 import Appointments from './pages/dashboards/Appointments';
 import Clinics from './pages/dashboards/Clinics';
+import ClinicDetail from './pages/dashboards/ClinicDetail';
 import MyAppointments from './pages/dashboards/MyAppointments';
 import MyExaminations from './pages/dashboards/MyExaminations';
+import Doctors from './pages/dashboards/Doctors';
+import PatientList from './pages/dashboards/PatientList';
+import MyDoctor from './pages/dashboards/MyDoctor';
+import MyPatients from './pages/dashboards/MyPatients';
 import './App.css';
 
-// Redirect authenticated users to their dashboard
 const AuthRedirect = ({ children }: { children: React.ReactNode }) => {
   const { user, isAuthenticated } = useAuth();
 
@@ -35,7 +39,7 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* Public Routes */}
+          {}
           <Route
             path="/login"
             element={
@@ -53,7 +57,7 @@ function App() {
             }
           />
 
-          {/* Protected Dashboard Routes */}
+          {}
           <Route
             path="/dashboard/patient"
             element={
@@ -79,7 +83,7 @@ function App() {
             }
           />
 
-          {/* Examinations Route - Doctor Only */}
+          {}
           <Route
             path="/examinations"
             element={
@@ -89,7 +93,7 @@ function App() {
             }
           />
 
-          {/* Profile Route - All Authenticated Users */}
+          {}
           <Route
             path="/profile"
             element={
@@ -99,7 +103,7 @@ function App() {
             }
           />
 
-          {/* Appointments Route - Doctor and Secretary */}
+          {}
           <Route
             path="/appointments"
             element={
@@ -109,7 +113,7 @@ function App() {
             }
           />
 
-          {/* Clinics Route - Secretary Only */}
+          {}
           <Route
             path="/clinics"
             element={
@@ -118,8 +122,45 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/clinics/:id"
+            element={
+              <ProtectedRoute allowedRoles={['secretary']}>
+                <ClinicDetail />
+              </ProtectedRoute>
+            }
+          />
 
-          {/* My Appointments Route - Patient Only */}
+          {}
+          <Route
+            path="/doctors"
+            element={
+              <ProtectedRoute allowedRoles={['secretary']}>
+                <Doctors />
+              </ProtectedRoute>
+            }
+          />
+
+          {}
+          <Route
+            path="/patients"
+            element={
+              <ProtectedRoute allowedRoles={['secretary']}>
+                <PatientList />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/my-patients"
+            element={
+              <ProtectedRoute allowedRoles={['doctor']}>
+                <MyPatients />
+              </ProtectedRoute>
+            }
+          />
+
+          {}
           <Route
             path="/my-appointments"
             element={
@@ -138,7 +179,16 @@ function App() {
             }
           />
 
-          {/* Default Redirect */}
+          <Route
+            path="/my-doctor"
+            element={
+              <ProtectedRoute allowedRoles={['patient']}>
+                <MyDoctor />
+              </ProtectedRoute>
+            }
+          />
+
+          {}
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>

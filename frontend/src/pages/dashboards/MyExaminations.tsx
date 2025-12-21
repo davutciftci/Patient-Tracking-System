@@ -35,7 +35,6 @@ const MyExaminations = () => {
     const fetchPatientIdAndExaminations = async () => {
         try {
             setLoading(true);
-            // Get user profile to find patientId
             const profileResponse = await getMe();
             const patientId = profileResponse.user?.roleData?.id;
 

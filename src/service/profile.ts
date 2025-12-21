@@ -1,5 +1,6 @@
 
-import { findUserWithRoleData, updateUserById } from "../repostory/profile";
+import prisma from "../config/prisma";
+import { findUserWithRoleData, updateUserById } from "../repository/profile";
 
 export const getMyProfile = async (userId: number, role: string) => {
     const includeOptions = {
@@ -22,7 +23,16 @@ export const getMyProfile = async (userId: number, role: string) => {
     return profile
 }
 export const updateMyProfile = async (userId: number, role: string, data: any) => {
-    const user = await updateUserById(userId, data);
-    const { password, ...profile } = user;
-    return profile
+    const { Doctor, Patient, Secretary, ...userData } = data;
+
+    const user = await updateUserById(userId, userData);
+
+    if (role === 'doctor' && Doctor?.update) {
+        await prisma.doctor.update({
+            where: { userId: userId },
+            data: Doctor.update
+        });
+    }
+
+    return getMyProfile(userId, role);
 }

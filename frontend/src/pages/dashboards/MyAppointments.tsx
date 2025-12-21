@@ -1,8 +1,22 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { getMyAppointmentsAsPatient, getMe } from '../../api/client';
+import { getMyAppointmentsAsPatient, getMe, createAppointment, getAllClinics, getAllDoctors } from '../../api/client';
 import './Dashboard.css';
+
+interface Clinic {
+    id: number;
+    name: string;
+}
+
+interface UserSelect {
+    id: number;
+    clinicId?: number;
+    user: {
+        firstName: string;
+        lastName: string;
+    };
+}
 
 interface Appointment {
     id: number;
@@ -23,30 +37,79 @@ const MyAppointments = () => {
     const [appointments, setAppointments] = useState<Appointment[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [showForm, setShowForm] = useState(false);
+
+    const [formData, setFormData] = useState({
+        clinicId: '',
+        doctorId: '',
+        date: '',
+        time: '',
+        notes: ''
+    });
+    const [clinics, setClinics] = useState<Clinic[]>([]);
+    const [doctors, setDoctors] = useState<UserSelect[]>([]);
+    const [patientId, setPatientId] = useState<number | null>(null);
 
     useEffect(() => {
-        fetchPatientIdAndAppointments();
+        fetchInitialData();
     }, []);
 
-    const fetchPatientIdAndAppointments = async () => {
+    const fetchInitialData = async () => {
         try {
             setLoading(true);
-            // Get user profile to find patientId
             const profileResponse = await getMe();
-            const patientId = profileResponse.user?.roleData?.id;
+            const pId = profileResponse.user?.roleData?.id;
 
-            if (!patientId) {
+            if (!pId) {
                 setError('Hasta bilgisi bulunamadı');
-                setLoading(false);
                 return;
             }
+            setPatientId(pId);
 
-            const appointmentsResponse = await getMyAppointmentsAsPatient(patientId);
-            setAppointments(appointmentsResponse || []);
+            const [appointmentsRes, clinicsRes, doctorsRes] = await Promise.all([
+                getMyAppointmentsAsPatient(pId),
+                getAllClinics(),
+                getAllDoctors()
+            ]);
+
+            setAppointments(appointmentsRes.appointments || []);
+            setClinics(clinicsRes.clinics || []);
+            setDoctors(doctorsRes.doctors || []);
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Randevular yüklenemedi');
+            setError(err.response?.data?.message || 'Veriler yüklenemedi');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchAppointments = async () => {
+        if (!patientId) return;
+        try {
+            const response = await getMyAppointmentsAsPatient(patientId);
+            setAppointments(response.appointments || []);
+        } catch (err: any) {
+            setError('Randevular güncellenemedi');
+        }
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!patientId) return;
+
+        try {
+            const dateTime = new Date(`${formData.date}T${formData.time}`).toISOString();
+            await createAppointment({
+                patientId: patientId,
+                doctorId: parseInt(formData.doctorId),
+                date: dateTime,
+                notes: formData.notes || undefined
+            });
+            setShowForm(false);
+            setFormData({ clinicId: '', doctorId: '', date: '', time: '', notes: '' });
+            alert('Randevu talebiniz alındı.');
+            fetchAppointments();
+        } catch (err: any) {
+            setError(err.response?.data?.message || 'Randevu oluşturulamadı');
         }
     };
 
@@ -77,6 +140,10 @@ const MyAppointments = () => {
         });
     };
 
+    const filteredDoctors = formData.clinicId
+        ? doctors.filter(d => d.clinicId === parseInt(formData.clinicId))
+        : [];
+
     return (
         <div className="dashboard-container">
             <header className="dashboard-header">
@@ -92,7 +159,95 @@ const MyAppointments = () => {
             </header>
 
             <main className="dashboard-content">
+                <div className="actions-bar">
+                    <button
+                        onClick={() => setShowForm(!showForm)}
+                        className="action-btn primary"
+                    >
+                        {showForm ? 'İptal' : '+ Yeni Randevu Al'}
+                    </button>
+                </div>
+
                 {error && <div className="error-message">{error}</div>}
+
+                {showForm && (
+                    <div className="form-card">
+                        <h3>Yeni Randevu Oluştur</h3>
+                        <form onSubmit={handleSubmit}>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Klinik Seçin</label>
+                                    <select
+                                        value={formData.clinicId}
+                                        onChange={(e) => setFormData({ ...formData, clinicId: e.target.value, doctorId: '' })}
+                                        required
+                                        className="form-select"
+                                    >
+                                        <option value="">Klinik Seçiniz</option>
+                                        {clinics.map((clinic) => (
+                                            <option key={clinic.id} value={clinic.id}>
+                                                {clinic.name}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label>Doktor Seçin</label>
+                                    <select
+                                        value={formData.doctorId}
+                                        onChange={(e) => setFormData({ ...formData, doctorId: e.target.value })}
+                                        required
+                                        className="form-select"
+                                        disabled={!formData.clinicId}
+                                    >
+                                        <option value="">
+                                            {formData.clinicId ? 'Doktor Seçiniz' : 'Önce Klinik Seçiniz'}
+                                        </option>
+                                        {filteredDoctors.map((doctor) => (
+                                            <option key={doctor.id} value={doctor.id}>
+                                                Dr. {doctor.user.firstName} {doctor.user.lastName}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Tarih</label>
+                                    <input
+                                        type="date"
+                                        value={formData.date}
+                                        onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                                        required
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>Saat</label>
+                                    <input
+                                        type="time"
+                                        value={formData.time}
+                                        onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="form-group">
+                                <label>Notlar</label>
+                                <textarea
+                                    value={formData.notes}
+                                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                                    placeholder="Randevu notları (isteğe bağlı)"
+                                    rows={2}
+                                />
+                            </div>
+                            <button type="submit" className="submit-btn">
+                                Randevu Oluştur
+                            </button>
+                        </form>
+                    </div>
+                )}
 
                 {loading ? (
                     <div className="loading">Yükleniyor...</div>
@@ -100,7 +255,7 @@ const MyAppointments = () => {
                     <div className="empty-state">
                         <div className="empty-icon">📅</div>
                         <h3>Henüz randevunuz yok</h3>
-                        <p>Randevu almak için sekreteryamız ile iletişime geçin.</p>
+                        <p>Yeni bir randevu oluşturmak için yukarıdaki butonu kullanın.</p>
                     </div>
                 ) : (
                     <div className="appointments-list">

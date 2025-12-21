@@ -40,7 +40,7 @@ const PatientDashboard = () => {
                         <p>Geçmiş muayenelerinizi inceleyin</p>
                     </div>
 
-                    <div className="dashboard-card">
+                    <div className="dashboard-card" onClick={() => navigate('/my-doctor')}>
                         <div className="card-icon">👨‍⚕️</div>
                         <h3>Doktorum</h3>
                         <p>Doktor bilgilerinizi görüntüleyin</p>

@@ -12,6 +12,7 @@
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@libsql/client": "^0.15.15",
     "@prisma/adapter-better-sqlite3": "^7.2.0",
     "@prisma/adapter-libsql": "^7.2.0",

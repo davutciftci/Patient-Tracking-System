@@ -23,7 +23,7 @@ export const getExaminationsByIdController = async (req: Request, res: Response)
 }
 export const getExaminationsByDoctorIdController = async (req: Request, res: Response) => {
     try {
-        const examinations = await getExaminationsByDoctorId(parseInt(req.params.id))
+        const examinations = await getExaminationsByDoctorId(parseInt(req.params.doctorId))
         sendSuccess(res, { examinations })
     } catch (error) {
         sendError(res, "Bir hata oluştu", HttpStatus.INTERNAL_SERVER_ERROR)
@@ -32,9 +32,12 @@ export const getExaminationsByDoctorIdController = async (req: Request, res: Res
 }
 export const getExaminationsByPatientIdController = async (req: Request, res: Response) => {
     try {
-        const examinations = await getExaminationsByPatientId(parseInt(req.params.id))
+        console.log(`Getting examinations for patientId: ${req.params.patientId}`);
+        const examinations = await getExaminationsByPatientId(parseInt(req.params.patientId));
+        console.log(`Found ${examinations.length} examinations`);
         sendSuccess(res, { examinations })
-    } catch (error) {
+    } catch (error: any) {
+        console.error('Error in getExaminationsByPatientIdController:', error);
         sendError(res, "Bir hata oluştu", HttpStatus.INTERNAL_SERVER_ERROR)
     }
 }
@@ -44,13 +47,30 @@ export const createNewExaminationsController = async (req: Request, res: Respons
     try {
         console.log('Creating examination request:', req.body);
 
-        // Fetch the doctor record for the logged in user
         const doctor = await prisma.doctor.findUnique({
             where: { userId: req.user?.userId }
         });
 
         if (!doctor) {
             return sendError(res, "Doktor profili bulunamadı. Lütfen tekrar giriş yapın.", HttpStatus.NOT_FOUND);
+        }
+
+        console.log(`Checking appointment existence for ID: ${req.body.appointmentId} (Type: ${typeof req.body.appointmentId})`);
+
+        const existingExam = await prisma.examination.findUnique({
+            where: { appointmentId: req.body.appointmentId }
+        });
+
+        const appointment = await prisma.appointment.findUnique({
+            where: { id: req.body.appointmentId }
+        });
+
+        if (!appointment) {
+            return sendError(res, "Randevu bulunamadı.", HttpStatus.NOT_FOUND);
+        }
+
+        if (existingExam) {
+            return sendError(res, "Bu randevu için zaten bir muayene kaydı mevcut.", HttpStatus.BAD_REQUEST);
         }
 
         const examinationData = {
@@ -60,6 +80,17 @@ export const createNewExaminationsController = async (req: Request, res: Respons
 
         console.log('Final examination data:', examinationData);
         const examinations = await createNewExaminations(examinationData, req.user?.role!)
+
+        await prisma.appointment.update({
+            where: { id: req.body.appointmentId },
+            data: { status: 'completed' }
+        });
+
+        await prisma.patient.update({
+            where: { id: appointment.patientId },
+            data: { doctorId: doctor.id }
+        });
+
         sendSuccess(res, { examinations })
     } catch (error: any) {
         console.error('Examination creation error:', error.message, error);

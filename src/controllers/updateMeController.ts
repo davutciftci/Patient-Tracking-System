@@ -5,10 +5,9 @@ import { Request, Response } from "express"
 import { updateMyProfile } from "../service/profile"
 
 export const updateMeController = async (req: Request, res: Response) => {
-    const { firstName, lastName, email, address, phoneNumber, birthDate } = req.body;
+    const { firstName, lastName, email, address, phoneNumber, birthDate, speciality } = req.body;
 
     try {
-        // Filter out empty values and format birthDate properly
         const updateData: any = {};
         if (firstName) updateData.firstName = firstName;
         if (lastName) updateData.lastName = lastName;
@@ -16,6 +15,14 @@ export const updateMeController = async (req: Request, res: Response) => {
         if (address) updateData.address = address;
         if (phoneNumber) updateData.phoneNumber = phoneNumber;
         if (birthDate) updateData.birthDate = new Date(birthDate);
+
+        if (req.user?.role === 'doctor' && speciality) {
+            updateData.Doctor = {
+                update: {
+                    speciality: speciality
+                }
+            };
+        }
 
         console.log('Update request:', { userId: req.user?.userId, data: updateData });
         const updatedUser = await updateMyProfile(req.user?.userId!, req.user?.role!, updateData);

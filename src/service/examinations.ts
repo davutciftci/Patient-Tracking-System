@@ -1,4 +1,4 @@
-import { createExamination, deleteExamination, findAllExaminations, findExaminationById, findExaminationsByAppointmentId, findExaminationsByDoctorId, findExaminationsByPatientId, updateExamination } from "../repostory/examination";
+import { createExamination, deleteExamination, findAllExaminations, findExaminationById, findExaminationsByAppointmentId, findExaminationsByDoctorId, findExaminationsByPatientId, updateExamination } from "../repository/examination";
 
 export const getAllExaminations = async () => {
     const examinations = await findAllExaminations();

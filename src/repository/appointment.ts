@@ -4,10 +4,10 @@ import { AppointmenStatus } from "../../generated/prisma/client"
 export const findAllAppointments = async () => {
     const appointments = await prisma.appointment.findMany({
         include: {
-            patient: true,
-            doctor: true,
-            secretary: true,
-            examinations: true
+            patient: { include: { user: true } },
+            doctor: { include: { user: true, clinic: true } },
+            secretary: { include: { user: true } },
+            examination: true
         }
     });
     return appointments
@@ -16,10 +16,10 @@ export const findAppointmentById = async (id: number) => {
     const appointments = await prisma.appointment.findUniqueOrThrow({
         where: { id },
         include: {
-            patient: true,
-            doctor: true,
-            secretary: true,
-            examinations: true
+            patient: { include: { user: true } },
+            doctor: { include: { user: true, clinic: true } },
+            secretary: { include: { user: true } },
+            examination: true
         }
     })
     return appointments
@@ -28,10 +28,10 @@ export const findAppointmentsByPatientId = async (patientId: number) => {
     const appointments = await prisma.appointment.findMany({
         where: { patientId },
         include: {
-            patient: true,
-            doctor: true,
-            secretary: true,
-            examinations: true
+            patient: { include: { user: true } },
+            doctor: { include: { user: true, clinic: true } },
+            secretary: { include: { user: true } },
+            examination: true
         }
     })
     return appointments
@@ -40,10 +40,10 @@ export const findAppointmentsByDoctorId = async (doctorId: number) => {
     const appointments = await prisma.appointment.findMany({
         where: { doctorId },
         include: {
-            patient: true,
-            doctor: true,
-            secretary: true,
-            examinations: true
+            patient: { include: { user: true } },
+            doctor: { include: { user: true, clinic: true } },
+            secretary: { include: { user: true } },
+            examination: true
         }
     })
     return appointments

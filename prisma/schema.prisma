@@ -44,6 +44,7 @@ enum Role {
 
 enum AppointmenStatus {
   pending
+  confirmed
   completed
   cancelled
 }
@@ -51,7 +52,7 @@ enum AppointmenStatus {
 model Patient {
   id           Int           @id @default(autoincrement())
   userId       Int           @unique
-  user         User          @relation(fields: [userId], references: [id])
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   appointments Appointment[]
   doctor       Doctor?       @relation(fields: [doctorId], references: [id])
   doctorId     Int?
@@ -61,7 +62,7 @@ model Doctor {
   id           Int           @id @default(autoincrement())
   speciality   String
   userId       Int           @unique
-  user         User          @relation(fields: [userId], references: [id])
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   appointments Appointment[]
   clinic       Clinic?       @relation(fields: [clinicId], references: [id], onDelete: SetDefault)
   clinicId     Int?
@@ -72,38 +73,39 @@ model Doctor {
 model Secretary {
   id           Int           @id @default(autoincrement())
   userId       Int           @unique
-  user         User          @relation(fields: [userId], references: [id])
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   appointments Appointment[]
   clinics      Clinic[]      @relation("SecretaryClinic")
 }
 
 model Appointment {
-  id           Int              @id @default(autoincrement())
-  patientId    Int
-  doctorId     Int
-  date         DateTime
-  status       AppointmenStatus
-  patient      Patient          @relation(fields: [patientId], references: [id])
-  doctor       Doctor           @relation(fields: [doctorId], references: [id])
-  secretary    Secretary?       @relation(fields: [secretaryId], references: [id])
-  secretaryId  Int?
-  examinations Examination[]
+  id          Int              @id @default(autoincrement())
+  patientId   Int
+  doctorId    Int
+  date        DateTime
+  status      AppointmenStatus
+  patient     Patient          @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  doctor      Doctor           @relation(fields: [doctorId], references: [id], onDelete: Cascade)
+  secretary   Secretary?       @relation(fields: [secretaryId], references: [id], onDelete: SetNull)
+  secretaryId Int?
+  examination Examination?
 }
 
 model Examination {
-  id            Int           @id @default(autoincrement())
-  appointmentId Int           @unique
+  id            Int         @id @default(autoincrement())
+  appointmentId Int         @unique
   diagnosis     String
   doctorId      Int
-  doctor        Doctor        @relation(fields: [doctorId], references: [id])
+  doctor        Doctor      @relation(fields: [doctorId], references: [id], onDelete: Cascade)
   treatment     String
   notes         String
-  appointment   Appointment[]
+  appointment   Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
 }
 
 model Clinic {
   id        Int         @id @default(autoincrement())
   name      String
+  address   String
   secretary Secretary[] @relation("SecretaryClinic")
   doctors   Doctor[]
 }

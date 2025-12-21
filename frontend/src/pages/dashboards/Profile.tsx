@@ -27,7 +27,8 @@ const Profile = () => {
         email: '',
         address: '',
         phoneNumber: '',
-        birthDate: ''
+        birthDate: '',
+        speciality: ''
     });
     const [successMessage, setSuccessMessage] = useState('');
 
@@ -39,8 +40,6 @@ const Profile = () => {
         try {
             setLoading(true);
             const response = await getMe();
-            // API returns { status: "success", user: {...} }
-            // axios wraps this in response.data
             const userData = response.user || response.data?.user;
             console.log('API response:', response);
             console.log('User data:', userData);
@@ -54,7 +53,8 @@ const Profile = () => {
                     email: userData.email || '',
                     address: '',
                     phoneNumber: '',
-                    birthDate: ''
+                    birthDate: '',
+                    speciality: userData.role === 'doctor' ? userData.roleData?.speciality || '' : ''
                 });
             }
         } catch (err: any) {
@@ -212,6 +212,17 @@ const Profile = () => {
                                         onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
                                     />
                                 </div>
+                                {profile.role === 'doctor' && (
+                                    <div className="form-group">
+                                        <label>Uzmanlık Alanı</label>
+                                        <input
+                                            type="text"
+                                            value={(formData as any).speciality}
+                                            onChange={(e) => setFormData({ ...formData, speciality: e.target.value } as any)}
+                                            placeholder="Örn: Kardiyoloji, Dahiliye"
+                                        />
+                                    </div>
+                                )}
                                 <div className="button-group">
                                     <button type="submit" className="submit-btn">
                                         💾 Kaydet

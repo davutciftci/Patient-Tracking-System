@@ -14,7 +14,6 @@ const ProtectedRoute = ({ children, allowedRoles }: ProtectedRouteProps) => {
     }
 
     if (allowedRoles && user && !allowedRoles.includes(user.role)) {
-        // Redirect to appropriate dashboard based on role
         const dashboardMap = {
             patient: '/dashboard/patient',
             doctor: '/dashboard/doctor',

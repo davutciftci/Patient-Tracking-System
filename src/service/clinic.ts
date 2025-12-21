@@ -1,4 +1,4 @@
-import { createClinic, deleteClinic, findAllClinics, findClinicById, updateClinic } from "../repostory/clinic"
+import { createClinic, deleteClinic, findAllClinics, findClinicById, updateClinic } from "../repository/clinic"
 
 export const getAllClinics = async () => {
     const clinics = await findAllClinics()

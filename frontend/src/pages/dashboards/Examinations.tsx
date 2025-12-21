@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { getAllExaminations, createExamination, deleteExamination } from '../../api/client';
+import { getAllExaminations, createExamination, deleteExamination, getAiSuggestions } from '../../api/client';
 import './Dashboard.css';
 
 interface Examination {
@@ -16,6 +16,7 @@ interface Examination {
 const Examinations = () => {
     const { logout } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
     const [examinations, setExaminations] = useState<Examination[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -29,7 +30,31 @@ const Examinations = () => {
 
     useEffect(() => {
         fetchExaminations();
-    }, []);
+        if (location.state?.appointmentId) {
+            setFormData(prev => ({ ...prev, appointmentId: location.state.appointmentId }));
+            setShowForm(true);
+        }
+    }, [location.state]);
+
+    const handleAskAI = async () => {
+        if (!formData.notes) return;
+
+        try {
+            setLoading(true);
+            const response = await getAiSuggestions(formData.notes);
+            if (response.data) {
+                setFormData(prev => ({
+                    ...prev,
+                    diagnosis: response.data.diagnosis,
+                    treatment: response.data.treatment
+                }));
+            }
+        } catch (err: any) {
+            setError('AI önerisi alınamadı: ' + (err.response?.data?.message || err.message));
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const fetchExaminations = async () => {
         try {
@@ -105,6 +130,9 @@ const Examinations = () => {
                 {showForm && (
                     <div className="form-card">
                         <h3>Yeni Muayene Kaydı</h3>
+                        <div className="ai-assistant-tip">
+                            💡 İpucu: Şikayetleri "Notlar" kısmına yazıp "🤖 AI'ya Sor" butonuna basarak teşhis önerisi alabilirsiniz.
+                        </div>
                         <form onSubmit={handleSubmit}>
                             <div className="form-group">
                                 <label>Randevu ID</label>
@@ -116,6 +144,7 @@ const Examinations = () => {
                                     placeholder="Randevu numarası"
                                 />
                             </div>
+
                             <div className="form-group">
                                 <label>Tanı</label>
                                 <textarea
@@ -137,13 +166,24 @@ const Examinations = () => {
                                 />
                             </div>
                             <div className="form-group">
-                                <label>Notlar</label>
-                                <textarea
-                                    value={formData.notes}
-                                    onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                                    placeholder="Ek notlar (isteğe bağlı)"
-                                    rows={2}
-                                />
+                                <label>Notlar / Şikayetler</label>
+                                <div className="input-with-button">
+                                    <textarea
+                                        value={formData.notes}
+                                        onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                                        placeholder="Hasta şikayetlerini buraya yazın..."
+                                        rows={3}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={handleAskAI}
+                                        className="ai-btn"
+                                        disabled={!formData.notes}
+                                        title="Yapay zeka önerisi al"
+                                    >
+                                        🤖 AI'ya Sor
+                                    </button>
+                                </div>
                             </div>
                             <button type="submit" className="submit-btn">
                                 Kaydet

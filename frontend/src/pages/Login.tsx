@@ -21,7 +21,6 @@ const Login = () => {
             const response = await apiLogin(email, password);
             login(response.token, response.role, response.firstName, response.gender);
 
-            // Role'e göre yönlendirme
             const dashboardMap: Record<string, string> = {
                 patient: '/dashboard/patient',
                 doctor: '/dashboard/doctor',
