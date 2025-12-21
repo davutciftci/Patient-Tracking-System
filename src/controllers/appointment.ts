@@ -46,10 +46,17 @@ export const getMyAppointmentsAsDoctorController = async (req: Request, res: Res
 }
 export const createAppointmentController = async (req: Request, res: Response) => {
     try {
-        const appointments = await createNewAppointment(req.body, req.user?.role!)
+        // Add default status if not provided
+        const appointmentData = {
+            ...req.body,
+            status: req.body.status || 'pending'
+        };
+        console.log('Creating appointment:', appointmentData);
+        const appointments = await createNewAppointment(appointmentData, req.user?.role!)
         sendSuccess(res, appointments)
-    } catch (error) {
-        sendError(res, "Bir hata oluştu", HttpStatus.INTERNAL_SERVER_ERROR)
+    } catch (error: any) {
+        console.error('Appointment creation error:', error.message, error);
+        sendError(res, error.message || "Bir hata oluştu", HttpStatus.INTERNAL_SERVER_ERROR)
     }
 }
 export const updateAppointmentController = async (req: Request, res: Response) => {

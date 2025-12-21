@@ -1,5 +1,5 @@
 import prisma from "../config/prisma"
-import { AppointmenStatus } from "../../generated/prisma"
+import { AppointmenStatus } from "../../generated/prisma/client"
 
 export const findAllAppointments = async () => {
     const appointments = await prisma.appointment.findMany({

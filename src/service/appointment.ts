@@ -6,10 +6,10 @@ import {
     createAppointment,
     updateAppointmentStatus
 } from "../repostory/appointment";
-import { AppointmenStatus } from "../../generated/prisma"
+import { AppointmenStatus } from "../../generated/prisma/client"
 
 export const getAllAppointments = async (role: string) => {
-    if (role !== "secretary") {
+    if (role !== "secretary" && role !== "doctor") {
         throw new Error("Bu işlem için yetkiniz yok")
     }
     const appointments = await findAllAppointments()
@@ -32,7 +32,7 @@ export const getMyAppointmentsAsDoctor = async (doctorId: number) => {
 };
 
 export const createNewAppointment = async (data: any, role: string) => {
-    if (role !== "secretary") {
+    if (role !== "secretary" && role !== "doctor") {
         throw new Error("Bu işlem için yetkiniz yok")
     }
     const appointment = await createAppointment(data)

@@ -17,7 +17,8 @@
     },
     "include": [
         "src/**/*",
-        "generated/**/*"
+        "generated/**/*",
+        "types/**/*"
     ],
     "exclude": [
         "node_modules",

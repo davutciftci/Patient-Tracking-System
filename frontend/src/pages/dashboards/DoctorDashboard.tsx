@@ -28,10 +28,10 @@ const DoctorDashboard = () => {
                 </div>
 
                 <div className="dashboard-grid">
-                    <div className="dashboard-card">
+                    <div className="dashboard-card" onClick={() => navigate('/appointments')}>
                         <div className="card-icon">📅</div>
-                        <h3>Bugünkü Randevular</h3>
-                        <p>Bugünkü hasta randevularınız</p>
+                        <h3>Randevular</h3>
+                        <p>Randevularınızı yönetin</p>
                     </div>
 
                     <div className="dashboard-card">
@@ -40,16 +40,16 @@ const DoctorDashboard = () => {
                         <p>Kayıtlı hastalarınızı görüntüleyin</p>
                     </div>
 
-                    <div className="dashboard-card">
+                    <div className="dashboard-card" onClick={() => navigate('/examinations')}>
                         <div className="card-icon">📝</div>
                         <h3>Muayene Kayıtları</h3>
                         <p>Muayene geçmişini yönetin</p>
                     </div>
 
-                    <div className="dashboard-card">
-                        <div className="card-icon">📊</div>
-                        <h3>İstatistikler</h3>
-                        <p>Hasta ve randevu istatistikleri</p>
+                    <div className="dashboard-card" onClick={() => navigate('/profile')}>
+                        <div className="card-icon">⚙️</div>
+                        <h3>Profil Ayarları</h3>
+                        <p>Kişisel bilgilerinizi güncelleyin</p>
                     </div>
                 </div>
             </main>

@@ -48,6 +48,28 @@ export const registerController = async (req: Request, res: Response) => {
                 birthDate: new Date(birthDate)
             }
         });
+
+        // Rol tabanlı kayıt oluşturma
+        if (role === 'doctor') {
+            await prisma.doctor.create({
+                data: {
+                    userId: newUser.id,
+                    speciality: 'Genel Pratisyen' // Default, daha sonra güncellenebilir
+                }
+            });
+        } else if (role === 'patient') {
+            await prisma.patient.create({
+                data: {
+                    userId: newUser.id
+                }
+            });
+        } else if (role === 'secretary') {
+            await prisma.secretary.create({
+                data: {
+                    userId: newUser.id
+                }
+            });
+        }
         sendSuccess(res, { message: "Kullanıcı oluşturuldu", userId: newUser.id, role: newUser.role });
     } catch (error: any) {
         console.error("Register Error:", error);
@@ -72,7 +94,7 @@ export const loginController = async (req: Request, res: Response) => {
             return sendError(res, "Email veya şifre hatalı", HttpStatus.BAD_REQUEST)
         }
 
-        const token = generateToken({ userId: user.id.toString() })
+        const token = generateToken({ userId: user.id, role: user.role })
 
         return sendSuccess(res, { message: "Giriş başarılı", token, role: user.role, firstName: user.firstName, gender: user.gender })
 

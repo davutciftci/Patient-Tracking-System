@@ -5,7 +5,7 @@ import { getMyProfile } from "../service/profile"
 
 export const getMeController = async (req: Request, res: Response) => {
     try {
-        const user = await getMyProfile(parseInt(req.user?.userId!), req.user?.role!)
+        const user = await getMyProfile(req.user?.userId!, req.user?.role!)
         if (!user) {
             return sendError(res, "User not found", HttpStatus.NOT_FOUND)
         }

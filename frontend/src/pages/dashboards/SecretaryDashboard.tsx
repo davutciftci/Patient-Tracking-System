@@ -28,7 +28,7 @@ const SecretaryDashboard = () => {
                 </div>
 
                 <div className="dashboard-grid">
-                    <div className="dashboard-card">
+                    <div className="dashboard-card" onClick={() => navigate('/appointments')}>
                         <div className="card-icon">📅</div>
                         <h3>Randevu Yönetimi</h3>
                         <p>Randevuları oluşturun ve yönetin</p>
@@ -40,16 +40,16 @@ const SecretaryDashboard = () => {
                         <p>Yeni hasta kaydı oluşturun</p>
                     </div>
 
-                    <div className="dashboard-card">
+                    <div className="dashboard-card" onClick={() => navigate('/clinics')}>
                         <div className="card-icon">🏥</div>
                         <h3>Klinik Bilgileri</h3>
-                        <p>Klinik ve doktor bilgileri</p>
+                        <p>Klinikleri yönetin</p>
                     </div>
 
-                    <div className="dashboard-card">
-                        <div className="card-icon">📞</div>
-                        <h3>İletişim</h3>
-                        <p>Hasta iletişim bilgileri</p>
+                    <div className="dashboard-card" onClick={() => navigate('/profile')}>
+                        <div className="card-icon">⚙️</div>
+                        <h3>Profil Ayarları</h3>
+                        <p>Kişisel bilgilerinizi güncelleyin</p>
                     </div>
                 </div>
             </main>

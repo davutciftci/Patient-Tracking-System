@@ -53,8 +53,8 @@ model Patient {
   userId       Int           @unique
   user         User          @relation(fields: [userId], references: [id])
   appointments Appointment[]
-  doctor       Doctor        @relation(fields: [doctorId], references: [id])
-  doctorId     Int
+  doctor       Doctor?       @relation(fields: [doctorId], references: [id])
+  doctorId     Int?
 }
 
 model Doctor {
@@ -63,8 +63,8 @@ model Doctor {
   userId       Int           @unique
   user         User          @relation(fields: [userId], references: [id])
   appointments Appointment[]
-  clinic       Clinic        @relation(fields: [clinicId], references: [id], onDelete: SetDefault)
-  clinicId     Int
+  clinic       Clinic?       @relation(fields: [clinicId], references: [id], onDelete: SetDefault)
+  clinicId     Int?
   examinations Examination[]
   patients     Patient[]
 }
@@ -81,6 +81,7 @@ model Appointment {
   id           Int              @id @default(autoincrement())
   patientId    Int
   doctorId     Int
+  date         DateTime
   status       AppointmenStatus
   patient      Patient          @relation(fields: [patientId], references: [id])
   doctor       Doctor           @relation(fields: [doctorId], references: [id])

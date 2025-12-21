@@ -13,6 +13,7 @@ export const getMyProfile = async (userId: number, role: string) => {
         name: user.firstName + " " + user.lastName,
         email: user.email,
         role: user.role,
+        gender: user.gender,
         createdAt: user.joined_at,
         updatedAt: user.joined_at,
         roleData: user.Doctor || user.Patient || user.Secretary || null

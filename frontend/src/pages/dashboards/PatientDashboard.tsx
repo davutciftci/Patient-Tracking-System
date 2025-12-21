@@ -28,13 +28,13 @@ const PatientDashboard = () => {
                 </div>
 
                 <div className="dashboard-grid">
-                    <div className="dashboard-card">
+                    <div className="dashboard-card" onClick={() => navigate('/my-appointments')}>
                         <div className="card-icon">📅</div>
                         <h3>Randevularım</h3>
                         <p>Yaklaşan randevularınızı görüntüleyin</p>
                     </div>
 
-                    <div className="dashboard-card">
+                    <div className="dashboard-card" onClick={() => navigate('/my-examinations')}>
                         <div className="card-icon">📋</div>
                         <h3>Muayene Geçmişi</h3>
                         <p>Geçmiş muayenelerinizi inceleyin</p>
@@ -46,7 +46,7 @@ const PatientDashboard = () => {
                         <p>Doktor bilgilerinizi görüntüleyin</p>
                     </div>
 
-                    <div className="dashboard-card">
+                    <div className="dashboard-card" onClick={() => navigate('/profile')}>
                         <div className="card-icon">⚙️</div>
                         <h3>Profil Ayarları</h3>
                         <p>Kişisel bilgilerinizi güncelleyin</p>
