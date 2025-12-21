@@ -27,3 +27,9 @@ export const updateClinic = async (clinicId: number, data: any) => {
     return clinic
 }
 
+export const deleteClinic = async (clinicId: number) => {
+    const clinic = await prisma.clinic.delete({
+        where: { id: clinicId }
+    })
+    return clinic
+}
