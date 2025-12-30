@@ -23,17 +23,17 @@ A full-stack patient tracking application built with Express.js, Prisma, and Rea
 #### Doctor Interface
 | Dashboard | My Patients |
 |-----------|-------------|
-| ![Doctor Dashboard](frontend/src/img/doctor_dashboard.png) | ![My Patients](frontend/src/img/doctor_my_patients.png) |
+| ![Doctor Dashboard](frontend/src/img/Screenshot%202025-12-30%20195440.png) | ![My Patients](frontend/src/img/Screenshot%202025-12-30%20195502.png) |
 
 #### Patient Interface
 | Dashboard | My Appointments | My Doctor |
 |-----------|----------------|-----------|
-| ![Patient Dashboard](frontend/src/img/patient_dashboard.png) | ![My Appointments](frontend/src/img/patient_my_appointments.png) | ![My Doctor](frontend/src/img/patient_my_doctor.png) |
+| ![Patient Dashboard](frontend/src/img/Screenshot%202025-12-30%20195528.png) | ![My Appointments](frontend/src/img/Screenshot%202025-12-30%20195544.png) | ![My Doctor](frontend/src/img/Screenshot%202025-12-30%20195605.png) |
 
 #### Secretary Interface
 | Dashboard | Patient List | Appointment Management |
 |-----------|--------------|------------------------|
-| ![Secretary Dashboard](frontend/src/img/secretary_dashboard.png) | ![Patient List](frontend/src/img/secretary_patient_list.png) | ![Appointments](frontend/src/img/secretary_appointments.png) |
+| ![Secretary Dashboard](frontend/src/img/Screenshot%202025-12-30%20195616.png) | ![Patient List](frontend/src/img/Screenshot%202025-12-30%20195630.png) | ![Appointments](frontend/src/img/Screenshot%202025-12-30%20195641.png) |
 
 
 ## Tech Stack
