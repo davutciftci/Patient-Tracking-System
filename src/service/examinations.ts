@@ -14,7 +14,12 @@ export const getExaminationsByDoctorId = async (doctorId: number) => {
 }
 export const getExaminationsByPatientId = async (patientId: number) => {
     const examinations = await findExaminationsByPatientId(patientId)
-    return examinations
+    return examinations.map(exam => ({
+        ...exam,
+        diagnosis: exam.isHidden ? "" : exam.diagnosis,
+        treatment: exam.treatment,
+        notes: exam.notes
+    }));
 }
 export const createNewExaminations = async (data: any, role: string) => {
     if (role !== "doctor") {

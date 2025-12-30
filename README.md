@@ -11,6 +11,31 @@ A full-stack patient tracking application built with Express.js, Prisma, and Rea
 - **Examination Records**: Document diagnoses, treatments, and notes
 - **Clinic Management**: Organize doctors and secretaries by clinic
 
+## Screenshots
+
+### Authentication
+| Login | Register |
+|-------|----------|
+| ![Login Page](frontend/src/img/login_page.png) | ![Register Page](frontend/src/img/register_page.png) |
+
+### Dashboards
+
+#### Doctor Interface
+| Dashboard | My Patients |
+|-----------|-------------|
+| ![Doctor Dashboard](frontend/src/img/doctor_dashboard.png) | ![My Patients](frontend/src/img/doctor_my_patients.png) |
+
+#### Patient Interface
+| Dashboard | My Appointments | My Doctor |
+|-----------|----------------|-----------|
+| ![Patient Dashboard](frontend/src/img/patient_dashboard.png) | ![My Appointments](frontend/src/img/patient_my_appointments.png) | ![My Doctor](frontend/src/img/patient_my_doctor.png) |
+
+#### Secretary Interface
+| Dashboard | Patient List | Appointment Management |
+|-----------|--------------|------------------------|
+| ![Secretary Dashboard](frontend/src/img/secretary_dashboard.png) | ![Patient List](frontend/src/img/secretary_patient_list.png) | ![Appointments](frontend/src/img/secretary_appointments.png) |
+
+
 ## Tech Stack
 
 ### Backend
@@ -89,17 +114,23 @@ PatientTrackingSystem/
 ├── src/
 │   ├── config/         # Database configuration
 │   ├── controllers/    # Request handlers
-│   ├── middlewares/    # Auth and validation middleware
-│   ├── model/          # Business logic
+│   ├── repository/     # Data access layer
 │   ├── router/         # API routes
+│   ├── service/        # Business logic
 │   ├── types/          # TypeScript interfaces
 │   ├── utils/          # Helper functions
 │   └── server.ts       # Application entry point
 ├── frontend/
+│   ├── public/
 │   └── src/
 │       ├── api/        # API client
+│       ├── components/ # Reusable React components
 │       ├── context/    # React context (Auth)
+│       ├── img/        # Application screenshots
 │       └── pages/      # React components
+│           ├── dashboards/ # Role-specific dashboards
+│           ├── Login.tsx
+│           └── Register.tsx
 ├── prisma/
 │   └── schema.prisma   # Database schema
 └── generated/          # Prisma generated client

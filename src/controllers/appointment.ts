@@ -38,7 +38,12 @@ export const getMyAppointmentsAsPatientController = async (req: Request, res: Re
 }
 export const getMyAppointmentsAsDoctorController = async (req: Request, res: Response) => {
     try {
-        const appointments = await getMyAppointmentsAsDoctor(parseInt(req.params.doctorId))
+        const filters = {
+            date: req.query.date ? new Date(req.query.date as string) : undefined,
+            status: req.query.status as any,
+            patientName: req.query.patientName as string
+        };
+        const appointments = await getMyAppointmentsAsDoctor(parseInt(req.params.doctorId), filters)
         sendSuccess(res, { appointments })
     } catch (error) {
         sendError(res, "Bir hata oluştu", HttpStatus.INTERNAL_SERVER_ERROR)
@@ -60,8 +65,15 @@ export const createAppointmentController = async (req: Request, res: Response) =
 }
 export const updateAppointmentController = async (req: Request, res: Response) => {
     try {
-        const appointments = await updateAppointment(parseInt(req.params.id), req.body.status, req.user?.role!)
-        sendSuccess(res, appointments)
+        const appointmentId = parseInt(req.params.id);
+        const updateData = {
+            status: req.body.status,
+            doctorId: req.body.doctorId,
+            date: req.body.date,
+            notes: req.body.notes
+        };
+        const appointment = await updateAppointment(appointmentId, updateData, req.user?.role!, req.user?.userId)
+        sendSuccess(res, appointment)
     } catch (error: any) {
         console.error("Update appointment error:", error);
         sendError(res, error.message || "Bir hata oluştu", HttpStatus.INTERNAL_SERVER_ERROR)

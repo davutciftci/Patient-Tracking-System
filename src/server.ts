@@ -12,7 +12,7 @@ app.use(express.json());
 
 app.use("/", router);
 
-const PORT = process.env.PORT || 3005;
+const PORT = 3007;
 
 console.log("Sunucu başlatılıyor...");
 

@@ -5,7 +5,11 @@ import { Request, Response } from "express"
 import { updateMyProfile } from "../service/profile"
 
 export const updateMeController = async (req: Request, res: Response) => {
-    const { firstName, lastName, email, address, phoneNumber, birthDate, speciality } = req.body;
+    const {
+        firstName, lastName, email, address, phoneNumber, birthDate, speciality,
+        notifySms, notifyEmail, notifyApp,
+        emergencyName, emergencyPhone, emergencyRelation
+    } = req.body;
 
     try {
         const updateData: any = {};
@@ -16,12 +20,30 @@ export const updateMeController = async (req: Request, res: Response) => {
         if (phoneNumber) updateData.phoneNumber = phoneNumber;
         if (birthDate) updateData.birthDate = new Date(birthDate);
 
-        if (req.user?.role === 'doctor' && speciality) {
-            updateData.Doctor = {
-                update: {
-                    speciality: speciality
-                }
-            };
+        
+        if (notifySms !== undefined) updateData.notifySms = notifySms;
+        if (notifyEmail !== undefined) updateData.notifyEmail = notifyEmail;
+        if (notifyApp !== undefined) updateData.notifyApp = notifyApp;
+
+        
+        if (emergencyName !== undefined) updateData.emergencyName = emergencyName || null;
+        if (emergencyPhone !== undefined) updateData.emergencyPhone = emergencyPhone || null;
+        if (emergencyRelation !== undefined) updateData.emergencyRelation = emergencyRelation || null;
+
+        if (req.user?.role === 'doctor') {
+            const doctorUpdate: any = {};
+            if (speciality) doctorUpdate.speciality = speciality;
+            if (req.body.workingDays) doctorUpdate.workingDays = req.body.workingDays;
+            if (req.body.workingHourStart) doctorUpdate.workingHourStart = req.body.workingHourStart;
+            if (req.body.workingHourEnd) doctorUpdate.workingHourEnd = req.body.workingHourEnd;
+            if (req.body.appointmentDuration) doctorUpdate.appointmentDuration = parseInt(req.body.appointmentDuration);
+            if (req.body.dailySlots !== undefined) doctorUpdate.dailySlots = req.body.dailySlots;
+
+            if (Object.keys(doctorUpdate).length > 0) {
+                updateData.Doctor = {
+                    update: doctorUpdate
+                };
+            }
         }
 
         console.log('Update request:', { userId: req.user?.userId, data: updateData });

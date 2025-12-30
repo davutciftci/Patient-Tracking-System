@@ -10,10 +10,14 @@ interface Patient {
         id: number;
         firstName: string;
         lastName: string;
+        tc_no: string;
         email: string;
         phoneNumber: string;
         gender: string;
         birthDate: string;
+        emergencyName: string | null;
+        emergencyPhone: string | null;
+        emergencyRelation: string | null;
     };
 }
 
@@ -23,6 +27,7 @@ const MyPatients = () => {
     const [patients, setPatients] = useState<Patient[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
 
     useEffect(() => {
         fetchPatients();
@@ -65,6 +70,16 @@ const MyPatients = () => {
         return age;
     };
 
+    const filteredPatients = patients.filter(patient => {
+        const term = searchTerm.toLowerCase();
+        return (
+            patient.user.firstName.toLowerCase().includes(term) ||
+            patient.user.lastName.toLowerCase().includes(term) ||
+            (patient.user.tc_no && patient.user.tc_no.includes(term)) ||
+            (patient.user.phoneNumber && patient.user.phoneNumber.includes(term))
+        );
+    });
+
     return (
         <div className="dashboard-container">
             <header className="dashboard-header">
@@ -80,15 +95,32 @@ const MyPatients = () => {
             </header>
 
             <main className="dashboard-content">
+                <div className="actions-bar">
+                    <input
+                        type="text"
+                        placeholder="Hasta Ara (Ad, TC, Telefon)..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="search-input"
+                        style={{
+                            padding: '12px',
+                            width: '100%',
+                            maxWidth: '400px',
+                            borderRadius: '8px',
+                            border: '1px solid #e2e8f0',
+                            fontSize: '1rem'
+                        }}
+                    />
+                </div>
                 {loading ? (
                     <div className="loading">Yükleniyor...</div>
                 ) : error ? (
                     <div className="error-message">{error}</div>
-                ) : patients.length === 0 ? (
+                ) : filteredPatients.length === 0 ? (
                     <div className="empty-state">
-                        <div className="empty-icon">👥</div>
-                        <h3>Henüz kayıtlı hasta yok</h3>
-                        <p>Muayene ettiğiniz hastalar burada listelenecektir.</p>
+                        <div className="empty-icon">🔍</div>
+                        <h3>Sonuç bulunamadı</h3>
+                        <p>Arama kriterlerinize uygun hasta bulunamadı.</p>
                     </div>
                 ) : (
                     <div className="table-container">
@@ -96,20 +128,24 @@ const MyPatients = () => {
                             <thead>
                                 <tr>
                                     <th>Ad Soyad</th>
+                                    <th>Doğum Tarihi</th>
                                     <th>Cinsiyet</th>
                                     <th>Yaş</th>
                                     <th>İletişim</th>
+                                    <th>🚨 Acil Durum Kişisi</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {patients.map((patient) => (
+                                {filteredPatients.map((patient) => (
                                     <tr key={patient.id}>
                                         <td>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                                <span>{patient.user.gender === 'female' ? '👩' : '👨'}</span>
-                                                {patient.user.firstName} {patient.user.lastName}
+
+                                                {patient.user.firstName} {patient.user.lastName} <br />
+
                                             </div>
                                         </td>
+                                        <td>{new Date(patient.user.birthDate).toLocaleDateString('en-GB')}</td>
                                         <td>{patient.user.gender === 'male' ? 'Erkek' : 'Kadın'}</td>
                                         <td>{calculateAge(patient.user.birthDate)}</td>
                                         <td>
@@ -117,6 +153,17 @@ const MyPatients = () => {
                                                 <small>📱 {patient.user.phoneNumber}</small>
                                                 <small>📧 {patient.user.email}</small>
                                             </div>
+                                        </td>
+                                        <td>
+                                            {patient.user.emergencyName ? (
+                                                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                                    <small><strong>{patient.user.emergencyName}</strong></small>
+                                                    <small>📞 {patient.user.emergencyPhone}</small>
+                                                    <small style={{ color: '#64748b' }}>({patient.user.emergencyRelation})</small>
+                                                </div>
+                                            ) : (
+                                                <span style={{ color: '#94a3b8' }}>Belirtilmemiş</span>
+                                            )}
                                         </td>
                                     </tr>
                                 ))}

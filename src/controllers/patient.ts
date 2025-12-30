@@ -19,3 +19,14 @@ export const getPatientsByDoctorController = async (req: Request, res: Response)
         sendError(res, "Hastalar getirilemedi", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 };
+
+export const updatePatientController = async (req: Request, res: Response) => {
+    try {
+        const id = parseInt(req.params.id);
+        const { updatePatient } = require("../service/patient");
+        const patient = await updatePatient(id, req.body);
+        sendSuccess(res, { patient });
+    } catch (error) {
+        sendError(res, "Hasta güncellenemedi", HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+};

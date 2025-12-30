@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { getAllPatients, register as apiRegister } from '../../api/client';
+import { getAllPatients, register as apiRegister, getAllDoctors, updatePatient } from '../../api/client';
 import './Dashboard.css';
 import '../Auth.css';
 
@@ -14,8 +14,29 @@ interface Patient {
         tc_no: string;
         phoneNumber: string;
         birthDate: string;
+        address: string;
         gender: string;
+        emergencyName: string | null;
+        emergencyPhone: string | null;
+        emergencyRelation: string | null;
     };
+    doctorId?: number;
+    doctor?: {
+        id: number;
+        user: {
+            firstName: string;
+            lastName: string;
+        }
+    };
+}
+
+interface Doctor {
+    id: number;
+    user: {
+        firstName: string;
+        lastName: string;
+    };
+    speciality: string;
 }
 
 const PatientList = () => {
@@ -25,6 +46,9 @@ const PatientList = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [showForm, setShowForm] = useState(false);
+    const [doctors, setDoctors] = useState<Doctor[]>([]);
+    const [editingPatient, setEditingPatient] = useState<Patient | null>(null);
+    const [selectedDoctorId, setSelectedDoctorId] = useState<string>('');
 
     const [formData, setFormData] = useState({
         firstName: '',
@@ -42,7 +66,17 @@ const PatientList = () => {
 
     useEffect(() => {
         fetchPatients();
+        fetchDoctors();
     }, []);
+
+    const fetchDoctors = async () => {
+        try {
+            const response = await getAllDoctors();
+            setDoctors(response.doctors || []);
+        } catch (err) {
+            console.error('Doktorlar yüklenemedi');
+        }
+    };
 
     const fetchPatients = async () => {
         try {
@@ -82,6 +116,27 @@ const PatientList = () => {
         }
     };
 
+    const handleEditClick = (patient: Patient) => {
+        setEditingPatient(patient);
+        setSelectedDoctorId(patient.doctorId?.toString() || '');
+    };
+
+    const handleUpdateSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!editingPatient) return;
+
+        try {
+            await updatePatient(editingPatient.id, {
+                doctorId: selectedDoctorId ? parseInt(selectedDoctorId) : undefined
+            });
+            alert('Hasta bilgileri güncellendi.');
+            setEditingPatient(null);
+            fetchPatients();
+        } catch (err: any) {
+            alert('Güncelleme başarısız: ' + (err.response?.data?.message || err.message));
+        }
+    };
+
     const handleLogout = () => {
         logout();
         navigate('/login');
@@ -113,7 +168,7 @@ const PatientList = () => {
 
                 {error && <div className="error-message">{error}</div>}
 
-                {}
+                { }
                 {showForm && (
                     <div className="form-card">
                         <h3>Yeni Hasta Kaydı</h3>
@@ -178,6 +233,34 @@ const PatientList = () => {
                     </div>
                 )}
 
+                {editingPatient && (
+                    <div className="form-card">
+                        <h3>Doktor Atama / Düzenleme</h3>
+                        <p><strong>Hasta:</strong> {editingPatient.user.firstName} {editingPatient.user.lastName}</p>
+                        <form onSubmit={handleUpdateSubmit}>
+                            <div className="form-group">
+                                <label>Atanan Doktor</label>
+                                <select
+                                    value={selectedDoctorId}
+                                    onChange={(e) => setSelectedDoctorId(e.target.value)}
+                                    className="form-select"
+                                >
+                                    <option value="">-- Doktor Seçin --</option>
+                                    {doctors.map(doc => (
+                                        <option key={doc.id} value={doc.id}>
+                                            Dr. {doc.user.firstName} {doc.user.lastName} ({doc.speciality})
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="button-group">
+                                <button type="submit" className="submit-btn" style={{ marginTop: '10px' }}>Güncelle</button>
+                                <button type="button" className="cancel-btn" onClick={() => setEditingPatient(null)} style={{ marginTop: '10px', marginLeft: '10px' }}>İptal</button>
+                            </div>
+                        </form>
+                    </div>
+                )}
+
                 {loading ? (
                     <div className="loading">Yükleniyor...</div>
                 ) : patients.length === 0 ? (
@@ -193,7 +276,13 @@ const PatientList = () => {
                                     <th>ID</th>
                                     <th>Ad Soyad</th>
                                     <th>TC No</th>
+                                    <th>Doğum Tarihi</th>
+                                    <th>Cinsiyet</th>
                                     <th>İletişim</th>
+                                    <th>Adres</th>
+                                    <th>🚨 Acil Durum Kişisi</th>
+                                    <th>Atanan Doktor</th>
+                                    <th>İşlemler</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -202,12 +291,36 @@ const PatientList = () => {
                                         <td>{patient.id}</td>
                                         <td>
                                             {patient.user.firstName} {patient.user.lastName}
-                                            <small style={{ display: 'block', color: '#666' }}>{patient.user.gender === 'female' ? 'Kadın' : 'Erkek'}, {new Date(patient.user.birthDate).toLocaleDateString()}</small>
+                                            <small style={{ display: 'block', color: '#666' }}></small>
                                         </td>
                                         <td>{patient.user.tc_no}</td>
+                                        <td>{new Date(patient.user.birthDate).toLocaleDateString()}</td>
+                                        <td>{patient.user.gender === 'male' ? 'Erkek' : 'Kadın'}</td>
                                         <td>
                                             <div>📧 {patient.user.email}</div>
                                             <div>📱 {patient.user.phoneNumber}</div>
+                                        </td>
+                                        <td>{patient.user.address}</td>
+                                        <td>
+                                            {patient.user.emergencyName ? (
+                                                <div>
+                                                    <div><strong>{patient.user.emergencyName}</strong></div>
+                                                    <div>📞 {patient.user.emergencyPhone}</div>
+                                                    <small style={{ color: '#64748b' }}>({patient.user.emergencyRelation})</small>
+                                                </div>
+                                            ) : (
+                                                <span style={{ color: '#94a3b8' }}>Belirtilmemiş</span>
+                                            )}
+                                        </td>
+                                        <td>
+                                            {patient.doctor ? (
+                                                <span>Dr. {patient.doctor.user.firstName} {patient.doctor.user.lastName}</span>
+                                            ) : (
+                                                <span style={{ color: '#ccc' }}>-</span>
+                                            )}
+                                        </td>
+                                        <td>
+                                            <button onClick={() => handleEditClick(patient)} className="edit-btn">✏️ Ata</button>
                                         </td>
                                     </tr>
                                 ))}

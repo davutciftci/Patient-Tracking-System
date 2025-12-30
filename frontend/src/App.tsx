@@ -12,6 +12,7 @@ import Appointments from './pages/dashboards/Appointments';
 import Clinics from './pages/dashboards/Clinics';
 import ClinicDetail from './pages/dashboards/ClinicDetail';
 import MyAppointments from './pages/dashboards/MyAppointments';
+import DoctorAppointments from './pages/dashboards/DoctorAppointments';
 import MyExaminations from './pages/dashboards/MyExaminations';
 import Doctors from './pages/dashboards/Doctors';
 import PatientList from './pages/dashboards/PatientList';
@@ -39,7 +40,7 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {}
+          { }
           <Route
             path="/login"
             element={
@@ -57,7 +58,7 @@ function App() {
             }
           />
 
-          {}
+          { }
           <Route
             path="/dashboard/patient"
             element={
@@ -83,7 +84,7 @@ function App() {
             }
           />
 
-          {}
+          { }
           <Route
             path="/examinations"
             element={
@@ -93,7 +94,7 @@ function App() {
             }
           />
 
-          {}
+          { }
           <Route
             path="/profile"
             element={
@@ -103,17 +104,26 @@ function App() {
             }
           />
 
-          {}
+          { }
           <Route
             path="/appointments"
             element={
-              <ProtectedRoute allowedRoles={['doctor', 'secretary']}>
+              <ProtectedRoute allowedRoles={['secretary']}>
                 <Appointments />
               </ProtectedRoute>
             }
           />
 
-          {}
+          <Route
+            path="/doctor-appointments"
+            element={
+              <ProtectedRoute allowedRoles={['doctor']}>
+                <DoctorAppointments />
+              </ProtectedRoute>
+            }
+          />
+
+          { }
           <Route
             path="/clinics"
             element={
@@ -131,7 +141,7 @@ function App() {
             }
           />
 
-          {}
+          { }
           <Route
             path="/doctors"
             element={
@@ -141,7 +151,7 @@ function App() {
             }
           />
 
-          {}
+          { }
           <Route
             path="/patients"
             element={
@@ -160,7 +170,7 @@ function App() {
             }
           />
 
-          {}
+          { }
           <Route
             path="/my-appointments"
             element={
@@ -188,7 +198,7 @@ function App() {
             }
           />
 
-          {}
+          { }
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>

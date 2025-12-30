@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { checkTcNo } from "../middlewares/user";
 import { authMiddleware } from "../controllers/auth";
-import { loginController, registerController, updateMeController, getMeController } from "../controllers/index";
+import { loginController, registerController, updateMeController, getMeController, changePasswordController } from "../controllers/index";
 import { createNewClinicController, deleteClinicController, getClinicByIdController, getCliniccontroller, updateExistingClinicController } from "../controllers/clinic";
 import { createAppointmentController, getAllAppointmentController, getAppointmentByIdController, getMyAppointmentsAsDoctorController, getMyAppointmentsAsPatientController, updateAppointmentController } from "../controllers/appointment";
 import { createNewExaminationsController, deleteExaminationsByIdController, getAllExaminationsController, getExaminationsByDoctorIdController, getExaminationsByIdController, getExaminationsByPatientIdController, updateExistingExaminationsController } from "../controllers/examination";
@@ -19,6 +19,7 @@ router.post("/login", loginController);
 
 router.get("/users/me", authMiddleware, getMeController);
 router.put("/users/me", authMiddleware, updateMeController)
+router.put("/users/me/password", authMiddleware, changePasswordController);
 
 router.get("/appointments", authMiddleware, getAllAppointmentController);
 router.get("/appointments/doctor/:doctorId", authMiddleware, getMyAppointmentsAsDoctorController);
@@ -43,11 +44,12 @@ router.post("/clinics", authMiddleware, createNewClinicController);
 router.put("/clinics/:id", authMiddleware, updateExistingClinicController);
 router.delete("/clinics/:id", authMiddleware, deleteClinicController);
 
-import { getAllPatientsController, getPatientsByDoctorController } from "../controllers/patient";
+import { getAllPatientsController, getPatientsByDoctorController, updatePatientController } from "../controllers/patient";
 import { getAllDoctorsController, updateExistingDoctorController } from "../controllers/doctor";
 
 router.get("/patients", authMiddleware, getAllPatientsController);
 router.get("/patients/doctor/:doctorId", authMiddleware, getPatientsByDoctorController);
+router.put("/patients/:id", authMiddleware, updatePatientController);
 router.get("/doctors", authMiddleware, getAllDoctorsController);
 router.put("/doctors/:id", authMiddleware, updateExistingDoctorController);
 

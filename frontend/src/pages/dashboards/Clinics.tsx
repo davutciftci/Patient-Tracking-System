@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { getAllClinics, createClinic, updateClinic, deleteClinic, getAllDoctors, updateDoctor } from '../../api/client';
+import { getAllClinics, createClinic, updateClinic, deleteClinic, getAllDoctors } from '../../api/client';
 import './Dashboard.css';
 
 interface Clinic {
@@ -30,8 +30,7 @@ const Clinics = () => {
     const [error, setError] = useState('');
     const [showForm, setShowForm] = useState(false);
     const [editingId, setEditingId] = useState<number | null>(null);
-    const [managingClinic, setManagingClinic] = useState<Clinic | null>(null);
-    const [selectedDoctorId, setSelectedDoctorId] = useState<string>('');
+
     const [formData, setFormData] = useState({
         name: '',
         address: ''
@@ -83,25 +82,7 @@ const Clinics = () => {
         }
     };
 
-    const handleAssignDoctor = async () => {
-        if (!selectedDoctorId || !managingClinic) return;
-        try {
-            await updateDoctor(parseInt(selectedDoctorId), { clinicId: managingClinic.id });
-            setSelectedDoctorId('');
-            fetchOnlyData();
-        } catch (err: any) {
-            setError('Doktor atanamadı');
-        }
-    };
 
-    const handleRemoveDoctor = async (doctorId: number) => {
-        try {
-            await updateDoctor(doctorId, { clinicId: null } as any);
-            fetchOnlyData();
-        } catch (err: any) {
-            setError('Doktor çıkarılamadı');
-        }
-    };
 
     const handleEdit = (clinic: Clinic) => {
         setEditingId(clinic.id);
@@ -161,7 +142,7 @@ const Clinics = () => {
 
                 {error && <div className="error-message">{error}</div>}
 
-                {}
+                { }
                 {showForm && (
                     <div className="form-card">
                         <h3>{editingId ? 'Klinik Düzenle' : 'Yeni Klinik Ekle'}</h3>

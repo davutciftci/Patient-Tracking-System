@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:3005';
+const API_BASE_URL = 'http://localhost:3007';
 
 const api = axios.create({
     baseURL: API_BASE_URL,
@@ -61,8 +61,25 @@ export const updateMe = async (data: {
     address?: string;
     phoneNumber?: string;
     birthDate?: string;
+    notifySms?: boolean;
+    notifyEmail?: boolean;
+    notifyApp?: boolean;
+    emergencyName?: string;
+    emergencyPhone?: string;
+    
+    workingDays?: string;
+    workingHourStart?: string;
+    workingHourEnd?: string;
+    appointmentDuration?: number;
+    dailySlots?: string;
+    speciality?: string;
 }) => {
     const response = await api.put('/users/me', data, { headers: getAuthHeader() });
+    return response.data;
+};
+
+export const changePassword = async (currentPassword: string, newPassword: string) => {
+    const response = await api.put('/users/me/password', { currentPassword, newPassword }, { headers: getAuthHeader() });
     return response.data;
 };
 
@@ -92,6 +109,7 @@ export const createExamination = async (data: {
     diagnosis: string;
     treatment: string;
     notes?: string;
+    isHidden?: boolean;
 }) => {
     const response = await api.post('/examinations', data, { headers: getAuthHeader() });
     return response.data;
@@ -101,6 +119,7 @@ export const updateExamination = async (id: number, data: {
     diagnosis?: string;
     treatment?: string;
     notes?: string;
+    isHidden?: boolean;
 }) => {
     const response = await api.put(`/examinations/${id}`, data, { headers: getAuthHeader() });
     return response.data;
@@ -121,8 +140,23 @@ export const getAppointmentById = async (id: number) => {
     return response.data;
 };
 
-export const getMyAppointmentsAsDoctor = async (doctorId: number) => {
-    const response = await api.get(`/appointments/doctor/${doctorId}`, { headers: getAuthHeader() });
+export const getMyAppointmentsAsDoctor = async (doctorId: number, filters?: { date?: Date; status?: string; patientName?: string }) => {
+    let url = `/appointments/doctor/${doctorId}`;
+    const params = new URLSearchParams();
+    if (filters?.date) params.append('date', filters.date.toISOString());
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.patientName) params.append('patientName', filters.patientName);
+
+    if (params.toString()) {
+        url += `?${params.toString()}`;
+    }
+
+    const response = await api.get(url, { headers: getAuthHeader() });
+    return response.data;
+};
+
+export const getExaminationsByDoctorId = async (doctorId: number) => {
+    const response = await api.get(`/examinations/doctor/${doctorId}`, { headers: getAuthHeader() });
     return response.data;
 };
 
@@ -136,6 +170,8 @@ export const createAppointment = async (data: {
     doctorId: number;
     date: string;
     notes?: string;
+    type?: 'standard' | 'emergency';
+    status?: string;
 }) => {
     const response = await api.post('/appointments', data, { headers: getAuthHeader() });
     return response.data;
@@ -147,7 +183,12 @@ export const getPatientsByDoctor = async (doctorId: number) => {
     return response.data;
 };
 
-export const updateAppointment = async (id: number, data: { status?: string }) => {
+export const updatePatient = async (id: number, data: { doctorId?: number }) => {
+    const response = await api.put(`/patients/${id}`, data, { headers: getAuthHeader() });
+    return response.data;
+};
+
+export const updateAppointment = async (id: number, data: { status?: string; doctorId?: number; date?: string; notes?: string }) => {
     const response = await api.put(`/appointments/${id}`, data, { headers: getAuthHeader() });
     return response.data;
 };

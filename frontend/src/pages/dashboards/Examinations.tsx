@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { getAllExaminations, createExamination, deleteExamination, getAiSuggestions } from '../../api/client';
+import { getExaminationsByDoctorId, createExamination, updateExamination, deleteExamination, getAiSuggestions, getMe } from '../../api/client';
 import './Dashboard.css';
 
 interface Examination {
@@ -11,6 +11,7 @@ interface Examination {
     diagnosis: string;
     treatment: string;
     notes: string;
+    isHidden?: boolean;
 }
 
 const Examinations = () => {
@@ -21,11 +22,13 @@ const Examinations = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [showForm, setShowForm] = useState(false);
+    const [editingId, setEditingId] = useState<number | null>(null);
     const [formData, setFormData] = useState({
         appointmentId: '',
         diagnosis: '',
         treatment: '',
-        notes: ''
+        notes: '',
+        isHidden: false
     });
 
     useEffect(() => {
@@ -59,29 +62,63 @@ const Examinations = () => {
     const fetchExaminations = async () => {
         try {
             setLoading(true);
-            const response = await getAllExaminations();
-            setExaminations(response.data?.examinations || []);
+            const userProfile = await getMe();
+            const doctorId = userProfile.user?.roleData?.id;
+
+            if (doctorId) {
+                const response = await getExaminationsByDoctorId(doctorId);
+                setExaminations(response.examinations || []);
+            } else {
+                setError('Doktor bilgisi bulunamadı.');
+            }
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Muayeneler yüklenemedi');
+            setError(err.response?.data?.message || 'Muayene geçmişi yüklenemedi');
         } finally {
             setLoading(false);
         }
     };
 
+    const handleEdit = (exam: Examination) => {
+        setFormData({
+            appointmentId: exam.appointmentId.toString(),
+            diagnosis: exam.diagnosis,
+            treatment: exam.treatment,
+            notes: exam.notes || '',
+            isHidden: exam.isHidden || false
+        });
+        setEditingId(exam.id);
+        setShowForm(true);
+        window.scrollTo(0, 0);
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await createExamination({
-                appointmentId: parseInt(formData.appointmentId),
-                diagnosis: formData.diagnosis,
-                treatment: formData.treatment,
-                notes: formData.notes
-            });
+            if (editingId) {
+                
+                await updateExamination(editingId, {
+                    diagnosis: formData.diagnosis,
+                    treatment: formData.treatment,
+                    notes: formData.notes,
+                    isHidden: formData.isHidden
+                });
+            } else {
+                
+                await createExamination({
+                    appointmentId: parseInt(formData.appointmentId),
+                    diagnosis: formData.diagnosis,
+                    treatment: formData.treatment,
+                    notes: formData.notes,
+                    isHidden: formData.isHidden
+                });
+            }
+
             setShowForm(false);
-            setFormData({ appointmentId: '', diagnosis: '', treatment: '', notes: '' });
+            setEditingId(null);
+            setFormData({ appointmentId: '', diagnosis: '', treatment: '', notes: '', isHidden: false });
             fetchExaminations();
         } catch (err: any) {
-            setError(err.response?.data?.message || 'Muayene oluşturulamadı');
+            setError(err.response?.data?.message || (editingId ? 'Muayene güncellenemedi' : 'Muayene oluşturulamadı'));
         }
     };
 
@@ -96,6 +133,12 @@ const Examinations = () => {
         }
     };
 
+    const handleCancel = () => {
+        setShowForm(false);
+        setEditingId(null);
+        setFormData({ appointmentId: '', diagnosis: '', treatment: '', notes: '', isHidden: false });
+    };
+
     const handleLogout = () => {
         logout();
         navigate('/login');
@@ -108,7 +151,7 @@ const Examinations = () => {
                     <button onClick={() => navigate(-1)} className="back-btn">
                         ← Geri
                     </button>
-                    <h1>Muayene Kayıtları</h1>
+                    <h1>Muayene Geçmişi</h1>
                 </div>
                 <button onClick={handleLogout} className="logout-btn">
                     Çıkış Yap
@@ -118,7 +161,10 @@ const Examinations = () => {
             <main className="dashboard-content">
                 <div className="actions-bar">
                     <button
-                        onClick={() => setShowForm(!showForm)}
+                        onClick={() => {
+                            if (showForm) handleCancel();
+                            else setShowForm(true);
+                        }}
                         className="action-btn primary"
                     >
                         {showForm ? 'İptal' : '+ Yeni Muayene'}
@@ -129,7 +175,7 @@ const Examinations = () => {
 
                 {showForm && (
                     <div className="form-card">
-                        <h3>Yeni Muayene Kaydı</h3>
+                        <h3>{editingId ? 'Muayene Kaydını Düzenle' : 'Yeni Muayene Kaydı'}</h3>
                         <div className="ai-assistant-tip">
                             💡 İpucu: Şikayetleri "Notlar" kısmına yazıp "🤖 AI'ya Sor" butonuna basarak teşhis önerisi alabilirsiniz.
                         </div>
@@ -142,6 +188,8 @@ const Examinations = () => {
                                     onChange={(e) => setFormData({ ...formData, appointmentId: e.target.value })}
                                     required
                                     placeholder="Randevu numarası"
+                                    disabled={!!editingId} 
+                                    style={editingId ? { backgroundColor: '#f1f5f9', cursor: 'not-allowed' } : {}}
                                 />
                             </div>
 
@@ -154,6 +202,18 @@ const Examinations = () => {
                                     placeholder="Hastanın tanısı"
                                     rows={3}
                                 />
+                            </div>
+                            <div className="form-group">
+                                <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={formData.isHidden}
+                                        onChange={(e) => setFormData({ ...formData, isHidden: e.target.checked })}
+                                        style={{ width: 'auto' }}
+                                    />
+                                    Tanıyı Hastadan Gizle 🔒
+                                </label>
+                                <small style={{ color: '#64748b' }}>İşaretlenirse, hasta bu tanıyı ve tedaviyi kendi panelinde göremez.</small>
                             </div>
                             <div className="form-group">
                                 <label>Tedavi</label>
@@ -185,9 +245,15 @@ const Examinations = () => {
                                     </button>
                                 </div>
                             </div>
-                            <button type="submit" className="submit-btn">
-                                Kaydet
-                            </button>
+
+                            <div className="button-group">
+                                <button type="submit" className="submit-btn">
+                                    {editingId ? 'Güncelle' : 'Kaydet'}
+                                </button>
+                                <button type="button" onClick={handleCancel} className="cancel-btn">
+                                    İptal
+                                </button>
+                            </div>
                         </form>
                     </div>
                 )}
@@ -210,6 +276,7 @@ const Examinations = () => {
                                     <th>Tanı</th>
                                     <th>Tedavi</th>
                                     <th>Notlar</th>
+                                    <th>Gizli</th>
                                     <th>İşlemler</th>
                                 </tr>
                             </thead>
@@ -221,13 +288,24 @@ const Examinations = () => {
                                         <td>{exam.diagnosis}</td>
                                         <td>{exam.treatment}</td>
                                         <td>{exam.notes || '-'}</td>
+                                        <td>{exam.isHidden ? '🔒 Evet' : 'Hayır'}</td>
                                         <td>
-                                            <button
-                                                onClick={() => handleDelete(exam.id)}
-                                                className="delete-btn"
-                                            >
-                                                🗑️
-                                            </button>
+                                            <div style={{ display: 'flex', gap: '8px' }}>
+                                                <button
+                                                    onClick={() => handleEdit(exam)}
+                                                    className="edit-btn"
+                                                    title="Düzenle"
+                                                >
+                                                    ✏️
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDelete(exam.id)}
+                                                    className="delete-btn"
+                                                    title="Sil"
+                                                >
+                                                    🗑️
+                                                </button>
+                                            </div>
                                         </td>
                                     </tr>
                                 ))}

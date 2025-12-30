@@ -37,7 +37,7 @@ const MyDoctor = () => {
             const response = await getMe();
 
 
-            const patientData = response.user?.Patient;
+            const patientData = response.user?.roleData;
 
             if (patientData?.doctor) {
                 setDoctor(patientData.doctor);
