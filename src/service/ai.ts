@@ -2,6 +2,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
+// eklenmedi
 export const generateDiagnosisSuggestion = async (symptoms: string) => {
     if (!process.env.GEMINI_API_KEY) {
         throw new Error("Gemini API Key tanımlanmamış.");

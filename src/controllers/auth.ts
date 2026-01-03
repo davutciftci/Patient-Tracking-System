@@ -1,42 +1,12 @@
-import { NextFunction } from "express";
 import { sendError, sendSuccess } from "../utils/response";
 import { HttpStatus } from "../utils/httpStatus";
-import { verifyToken, generateToken } from "../utils/auth";
+import { generateToken } from "../utils/auth";
 import { Request, Response } from "express";
-import { TokenPayload } from "../types/type";
 import prisma from "../config/prisma";
 import { Gender } from "../../generated/prisma/client";
 import { comparePassword, hashPassword } from "../utils/password";
 
-declare global {
-    namespace Express {
-        interface Request {
-            user?: TokenPayload;
-        }
-    }
-}
 
-export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
-    try {
-        const authHeader = req.headers.authorization;
-
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            return sendError(res, "Invalid token format", HttpStatus.UNAUTHORIZED)
-        }
-
-        const token = authHeader.split(" ")[1];
-
-        if (!token) {
-            return sendError(res, "Invalid token format", HttpStatus.UNAUTHORIZED)
-        }
-
-        const decodedToken = verifyToken(token);
-        req.user = decodedToken;
-        next();
-    } catch (error) {
-        return sendError(res, "Unauthorized", HttpStatus.UNAUTHORIZED)
-    }
-}
 
 export const registerController = async (req: Request, res: Response) => {
     try {

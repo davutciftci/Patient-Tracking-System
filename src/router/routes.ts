@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { checkTcNo } from "../middlewares/user";
-import { authMiddleware } from "../controllers/auth";
+import { authMiddleware } from "../middlewares/auth";
 import { loginController, registerController, updateMeController, getMeController, changePasswordController } from "../controllers/index";
 import { createNewClinicController, deleteClinicController, getClinicByIdController, getCliniccontroller, updateExistingClinicController } from "../controllers/clinic";
 import { createAppointmentController, getAllAppointmentController, getAppointmentByIdController, getMyAppointmentsAsDoctorController, getMyAppointmentsAsPatientController, updateAppointmentController } from "../controllers/appointment";
